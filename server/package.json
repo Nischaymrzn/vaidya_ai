@@ -1,7 +1,7 @@
 {
   "name": "vaidya_backend",
   "version": "1.0.0",
-  "description": "vaidya_backend",
+  "description": "vaidya",
   "main": "server.ts",
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
