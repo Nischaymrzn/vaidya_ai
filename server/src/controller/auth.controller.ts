@@ -18,7 +18,11 @@ export class AuthController {
     const parsedData = CreateUserDTO.safeParse(req.body);
 
     if (!parsedData.success) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, parsedData.error.message);
+      return res.status(400).json({
+        success: false,
+        status: 400,
+        message: parsedData.error.flatten().fieldErrors,
+      });
     }
     const createdUser = await userServices.createUser(parsedData.data);
 
