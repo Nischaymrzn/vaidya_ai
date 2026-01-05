@@ -8,15 +8,7 @@ export const UserSchema = z.object({
     .min(5, { message: "Email must be at least 5 characters" }),
   password: z
     .string()
-    .min(8, { message: "Password must be at least 8 characters" })
-    .max(32, { message: "Password cannot be longer than 32 characters" })
-    .regex(/[a-z]/, {
-      message: "Password must contain at least one lowercase letter",
-    })
-    .regex(/[0-9]/, { message: "Password must contain at least one number" })
-    .regex(/[\W_]/, {
-      message: "Password must contain at least one special character",
-    }),
+    .min(8, { message: "Password must be at least 8 characters" }),
   number: z.number().optional(),
   isEmailVerified: z.boolean().default(false),
   role: z.enum(["admin", "user"]).default("user"),
