@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useSignupForm } from "../_hooks/useSignupForm"
+import { useSignUp } from "../_hooks/use-sign-up"
 
 export function SignupForm() {
     const {
@@ -14,8 +14,8 @@ export function SignupForm() {
             formState: { errors },
         },
         onSubmit,
-        isLoading,
-    } = useSignupForm()
+        isSubmitting,
+    } = useSignUp()
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full max-w-xl">
@@ -50,10 +50,10 @@ export function SignupForm() {
                 <Input
                     placeholder="Enter your phone number"
                     className="h-11 w-full mt-1 text-base font-medium text-gray-900"
-                    {...register("phone")}
+                    {...register("number")}
                 />
-                {errors.phone?.message && (
-                    <p className="text-xs text-red-600">{errors.phone.message}</p>
+                {errors.number?.message && (
+                    <p className="text-xs text-red-600">{errors.number.message}</p>
                 )}
             </div>
 
@@ -85,11 +85,11 @@ export function SignupForm() {
 
             <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isSubmitting}
                 className="h-11 w-full rounded-lg bg-[#1F7AE0] text-white font-semibold hover:bg-[#1B6BB8] flex items-center justify-center gap-2"
             >
-                {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
-                {isLoading ? "Creating account..." : "Sign up"}
+                {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
+                {isSubmitting ? "Creating account..." : "Sign up"}
             </Button>
 
             <div className="text-center font-medium mt-2">
@@ -107,7 +107,7 @@ export function SignupForm() {
 
             <Button
                 type="button"
-                disabled={isLoading}
+                disabled={isSubmitting}
                 className="h-11 w-full rounded-lg border bg-background text-[#3C4043] font-semibold hover:bg-muted/50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

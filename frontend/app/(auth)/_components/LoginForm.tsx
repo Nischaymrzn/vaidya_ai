@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useLoginForm } from "../_hooks/useLoginForm"
+import { useSignIn } from "../_hooks/use-log-in"
 
 export function LoginForm() {
     const {
@@ -14,8 +14,8 @@ export function LoginForm() {
             formState: { errors },
         },
         onSubmit,
-        isLoading,
-    } = useLoginForm()
+        isSubmitting,
+    } = useSignIn()
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full max-w-xl">
@@ -47,11 +47,11 @@ export function LoginForm() {
 
             <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isSubmitting}
                 className="h-11 w-full rounded-lg bg-[#1F7AE0] text-white font-semibold hover:bg-[#1B6BB8] flex items-center justify-center gap-2"
             >
-                {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
-                {isLoading ? "Logging in..." : "Login"}
+                {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
+                {isSubmitting ? "Logging in..." : "Login"}
             </Button>
 
             <div className="text-center font-medium mt-2">
@@ -69,7 +69,7 @@ export function LoginForm() {
 
             <Button
                 type="button"
-                disabled={isLoading}
+                disabled={isSubmitting}
                 className="h-11 w-full rounded-lg border bg-background text-[#3C4043] font-semibold hover:bg-muted/50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
