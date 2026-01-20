@@ -33,7 +33,7 @@ export class UserServices {
 
   async loginUser(data: loginUserDTO) {
     const existingUser = await userRepository.getUserWithPasswordByEmail(
-      data.email
+      data.email,
     );
 
     if (!existingUser) {
@@ -41,13 +41,13 @@ export class UserServices {
     }
     const validatedPassword = await bcryptUtil.compare(
       data.password,
-      existingUser.password
+      existingUser.password,
     );
 
     if (!validatedPassword) {
       throw new ApiError(
         StatusCodes.CONFLICT,
-        errorMessages.USER.INVALID_CREDENTIALS
+        errorMessages.USER.INVALID_CREDENTIALS,
       );
     }
 

@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema<UserType>(
 
     deletedAt: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export type UserDocument = HydratedDocument<UserType>;

@@ -1,11 +1,9 @@
 import z from "zod";
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-
 import ApiError from "../exceptions/apiError";
 import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
-import cookieConfig from "../utils/cookiesConfig";
 import { UserServices } from "../services/auth.service";
 import responseMessages from "../constants/responseMessages";
 import { CreateUserDTO, loginUserDTO } from "../dtos/user.dto";
@@ -27,7 +25,7 @@ export class AuthController {
     const createdUser = await userServices.createUser(parsedData.data);
 
     return res.json(
-      new ApiResponse(201, responseMessages.USER.CREATED, createdUser)
+      new ApiResponse(201, responseMessages.USER.CREATED, createdUser),
     );
   });
 
@@ -42,14 +40,15 @@ export class AuthController {
     }
 
     const { accessToken, refreshToken, user } = await userServices.loginUser(
-      parsedData.data
+      parsedData.data,
     );
 
-    res.cookie("accessToken", accessToken, cookieConfig.accessTokenConfig);
-    res.cookie("refreshToken", refreshToken, cookieConfig.refreshTokenConfig);
-
     return res.json(
-      new ApiResponse(201, responseMessages.USER.LOGGED_IN, user)
+      new ApiResponse(201, responseMessages.USER.LOGGED_IN, {
+        user,
+        accessToken,
+        refreshToken,
+      }),
     );
   });
 
@@ -57,7 +56,7 @@ export class AuthController {
     if (!req.user) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
-        errorMessages.USER.UNAUTHORIZED
+        errorMessages.USER.UNAUTHORIZED,
       );
     }
 
@@ -66,8 +65,8 @@ export class AuthController {
       new ApiResponse(
         StatusCodes.OK,
         responseMessages.USER.RETRIEVED,
-        currentUser
-      )
+        currentUser,
+      ),
     );
   });
 }
