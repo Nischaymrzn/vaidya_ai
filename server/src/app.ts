@@ -8,6 +8,7 @@ import mainRouter from "./routes";
 import { env } from "./config/env";
 import { httpLogger } from "./lib/http-logger";
 import { logger } from "./lib/logger";
+import path from "path";
 
 const app: Application = express();
 
