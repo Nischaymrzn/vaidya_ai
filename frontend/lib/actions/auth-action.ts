@@ -10,9 +10,11 @@ export async function signup(data: SignupFormData) {
     const response = await api.post(API.AUTH.REGISTER, data);
     return response.data;
   } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message || error.message || "Signup failed";
     return {
       success: false,
-      message: error.message || "Signup failed",
+      message: errorMessage,
     };
   }
 }
@@ -40,9 +42,11 @@ export async function getMe() {
     const response = await api.get(API.AUTH.ME);
     return response.data;
   } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message || error.message || "Fetching user failed";
     return {
       success: false,
-      message: error.message || "Failed to fetch user data",
+      message: errorMessage,
     };
   }
 }
