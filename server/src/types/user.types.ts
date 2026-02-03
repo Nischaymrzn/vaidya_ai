@@ -9,11 +9,12 @@ export const UserSchema = z.object({
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters" }),
-  number: z.number().optional(),
-  isEmailVerified: z.boolean().default(false),
+  number: z.string().optional(),
+  isEmailVerified: z.coerce.boolean().default(false),
   role: z.enum(["admin", "user"]).default("user"),
-  isActive: z.boolean().default(false),
+  isActive: z.coerce.boolean().default(false),
   deletedAt: z.date(),
+  profilePicture: z.string().optional(),
 });
 
 const User = UserSchema.pick({
