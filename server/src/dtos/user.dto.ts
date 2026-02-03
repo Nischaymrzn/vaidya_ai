@@ -1,4 +1,4 @@
-import z, { number } from "zod";
+import z from "zod";
 import { UserSchema } from "../types/user.types";
 
 export const CreateUserDTO = z
@@ -20,7 +20,8 @@ export const CreateUserDTO = z
       .regex(/[\W_]/, {
         message: "Password must contain at least one special character",
       }),
-    number: z.int().optional(),
+    number: z.string().optional(),
+    profilePicture: z.string().optional(),
     confirmPassword: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" }),
@@ -37,3 +38,6 @@ export const loginUserDTO = UserSchema.pick({
 
 export type loginUserDTO = z.infer<typeof loginUserDTO>;
 export type CreateUserDTO = z.infer<typeof CreateUserDTO>;
+
+export const UpdateUserDto = UserSchema.partial(); 
+export type UpdateUserDto = z.infer<typeof UpdateUserDto>;

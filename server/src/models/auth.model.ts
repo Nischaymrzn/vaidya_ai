@@ -20,12 +20,13 @@ const userSchema = new mongoose.Schema<UserType>(
       default: "user",
     },
     number: {
-      type: Number,
+      type: String,
     },
     password: {
       type: String,
       select: false,
     },
+    profilePicture: { type: String, required: false },
     isEmailVerified: {
       type: Boolean,
       default: false,

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "../controller/auth.controller";
-import { middlewares } from "../middlewares/isAuthenticated";
+import { middlewares } from "../middlewares/authorization.middleware";
 
 const authRouter = Router();
 
@@ -11,7 +11,7 @@ authRouter.post("/register", authcontroller.createUser);
 authRouter.get(
   "/me",
   middlewares.isAuthenticated,
-  authcontroller.getCurrentUser
+  authcontroller.getCurrentUser,
 );
 
 export default authRouter;

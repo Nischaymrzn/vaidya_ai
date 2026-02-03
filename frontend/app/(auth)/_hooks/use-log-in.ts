@@ -25,7 +25,6 @@ export const useSignIn = () => {
     startTransition(async () => {
       try {
         const response = await signin(data);
-        console.log(response);
         const accessToken = response?.data?.accessToken;
 
         if (!accessToken) {
@@ -37,9 +36,15 @@ export const useSignIn = () => {
         }
 
         await createSession(accessToken);
-        router.refresh();
-
         toast.success(response?.message || "Signed in successfully.");
+
+        // Redirect based on role: admin -> /admin/users, user -> /dashboard
+        const role = response?.data?.user?.role;
+        if (role === "admin") {
+          router.push("/admin/users");
+        } else {
+          router.push("/dashboard");
+        }
       } catch (error: Error | any) {
         const errorMessage =
           error?.response?.data?.message ||
