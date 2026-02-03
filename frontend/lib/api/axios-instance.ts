@@ -1,7 +1,9 @@
 import axios from "axios";
-import { verifySession } from "../session";
+import { verifySession, clearSession } from "../session";
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/v1/api";
+
 export const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
@@ -17,4 +19,14 @@ api.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error),
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error?.response?.status === 401) {
+      await clearSession();
+    }
+    return Promise.reject(error);
+  },
 );

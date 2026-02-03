@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 
 export async function createSession(token: string) {
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
   const cookieStore = await cookies();
 
   cookieStore.set("access_token", token, {
@@ -31,7 +31,7 @@ export async function updateSession() {
 
   if (!token) return null;
 
-  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
 
   const cookieStore = await cookies();
   cookieStore.set("access_token", token, {
