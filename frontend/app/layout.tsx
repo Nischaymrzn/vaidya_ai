@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Urbanist } from "next/font/google";
+import { Geist, Geist_Mono, Urbanist, Space_Grotesk, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"
 
@@ -18,6 +18,18 @@ const urbanist = Urbanist({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"]
 });
+
+// const spacegrotesk = Space_Grotesk({
+//   variable: "--font-space-grotesk",
+//   subsets: ["latin"],
+//   weight: ["300", "400", "500", "600", "700"]
+// });
+
+// const dmsans = DM_Sans({
+//   variable: "--font-space-grotesk",
+//   subsets: ["latin"],
+//   weight: ["300", "400", "500", "600", "700"]
+// });
 
 
 export const metadata: Metadata = {
