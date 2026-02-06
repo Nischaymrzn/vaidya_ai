@@ -39,5 +39,16 @@ export const loginUserDTO = UserSchema.pick({
 export type loginUserDTO = z.infer<typeof loginUserDTO>;
 export type CreateUserDTO = z.infer<typeof CreateUserDTO>;
 
+export const requestPasswordResetDTO = z.object({
+  email: CreateUserDTO.shape.email,
+});
+
+export const resetPasswordDTO = z.object({
+  newPassword: CreateUserDTO.shape.password,
+});
+
+export type RequestPasswordResetDTO = z.infer<typeof requestPasswordResetDTO>;
+export type ResetPasswordDTO = z.infer<typeof resetPasswordDTO>;
+
 export const UpdateUserDto = UserSchema.partial(); 
 export type UpdateUserDto = z.infer<typeof UpdateUserDto>;
