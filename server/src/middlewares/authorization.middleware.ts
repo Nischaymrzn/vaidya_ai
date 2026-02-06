@@ -7,13 +7,11 @@ import ApiError from "../exceptions/apiError";
 import asyncHandler from "../utils/asyncHandler";
 import errorMessages from "../constants/errorMessages";
 import { UserRepository } from "../repositories/user.repository";
-import { User } from "../types/user.types";
+import { AuthUser } from "../types/user.types";
 
 declare global {
   namespace Express {
-    interface Request {
-      user?: Record<string, any> | User
-    }
+    interface User extends AuthUser {}
   }
 }
 
