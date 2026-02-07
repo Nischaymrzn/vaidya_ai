@@ -28,9 +28,8 @@ export class AdminUserService {
     if (!user) throw new ApiError(404, "User not found");
     return user;
   }
-  async getAllUsers() {
-    const users = await userRepository.getAllUsers();
-    return users;
+  async getAllUsers(options?: { page?: number; limit?: number }) {
+    return userRepository.getAllUsers(options);
   }
   async updateOneUser(id: string, data: UpdateUserDto) {
     const existingUser = await userRepository.getUserById(id);
