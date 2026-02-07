@@ -114,6 +114,66 @@ export class UserServices {
     return { id: user._id, email: user.email };
   }
 
+  async findOrCreateByGoogle(profile: GoogleProfile) {
+    const googleId = profile.id;
+    const email = profile.emails?.[0]?.value;
+
+    if (!email) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "Email not provided by Google",
+      );
+    }
+
+    let user = await userRepository.getUserByGoogleId(googleId);
+
+    if (user) {
+      const userObj = user.toObject();
+      const { password, ...safeUser } = userObj;
+      const payload = {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      };
+      const { accessToken, refreshToken } = GenerateTokens(payload);
+      return { accessToken, refreshToken, user: safeUser };
+    }
+
+    const existingByEmail = await userRepository.getUserByEmail(email);
+    if (existingByEmail) {
+      await userRepository.updateOneUser(String(existingByEmail._id), {
+        googleId,
+        isEmailVerified: true,
+      });
+      user = await userRepository.getUserById(String(existingByEmail._id));
+    } else {
+      user = await userRepository.createUser({
+        name: profile.displayName ?? email.split("@")[0],
+        email,
+        googleId,
+        isEmailVerified: true,
+        role: "user",
+      });
+    }
+
+    if (!user) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to create or update user",
+      );
+    }
+
+    const userObj = (user as any).toObject ? (user as any).toObject() : user;
+    const { password, ...safeUser } = userObj;
+    const payload = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+    };
+    const { accessToken, refreshToken } = GenerateTokens(payload);
+    return { accessToken, refreshToken, user: safeUser };
+  }
+
   async resetPassword(token?: string, newPassword?: string) {
     if (!token || !newPassword) {
       throw new ApiError(
