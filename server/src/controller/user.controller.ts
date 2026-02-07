@@ -54,10 +54,24 @@ export class UserController {
   }
   async getAllUsers(req: Request, res: Response) {
     try {
-      const users = await adminUserService.getAllUsers();
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const result = await adminUserService.getAllUsers({ page, limit });
       return res
         .status(200)
-        .json({ success: true, data: users, message: "Users Fetched" });
+        .json({
+          success: true,
+          data: result.data,
+          pagination: {
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+            totalPages: result.totalPages,
+            hasNext: result.hasNext,
+            hasPrev: result.hasPrev,
+          },
+          message: "Users Fetched",
+        });
     } catch (error: Error | any) {
       return res
         .status(error.statusCode || 500)
