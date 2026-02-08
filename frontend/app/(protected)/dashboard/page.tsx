@@ -5,14 +5,12 @@ export default async function OverviewPage() {
     const user = await getCurrentUser();
 
     return (
-        <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black gap-4" >
-            <p>Dashboard Page</p>
-
-            <p>
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
+            <p className="text-2xl font-semibold">I am dashboard page</p>
+            <p className="text-muted-foreground">
                 Hello, {user?.name}!
             </p>
-
             <Logout />
-        </div >
+        </div>
     );
 }
