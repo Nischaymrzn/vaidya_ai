@@ -42,9 +42,9 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="sidebar-refined sticky top-0 border-r border-border/60 bg-background/95"
+      className="sidebar-refined sticky top-0 border-r border-border bg-background/95"
     >
-      <SidebarHeader className={cn("pb-3 pt-4", collapsed ? "px-2" : "px-3")}>
+      <SidebarHeader className={cn("pb-3 pt-3.5", collapsed ? "px-2" : "px-3")}>
         <div
           className={cn(
             "flex w-full items-center gap-3",
