@@ -76,7 +76,7 @@ export function ProfileOverview({ user }: ProfileOverviewProps) {
       </div>
 
       <div className="space-y-6">
-        <Card>
+        <Card className="gap-4">
           <CardHeader>
             <CardTitle className="text-base">Account</CardTitle>
           </CardHeader>
@@ -94,7 +94,7 @@ export function ProfileOverview({ user }: ProfileOverviewProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="gap-4">
           <CardHeader>
             <CardTitle className="text-base">General</CardTitle>
           </CardHeader>
@@ -112,7 +112,7 @@ export function ProfileOverview({ user }: ProfileOverviewProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="gap-4">
           <CardHeader>
             <CardTitle className="text-base">Support</CardTitle>
           </CardHeader>
