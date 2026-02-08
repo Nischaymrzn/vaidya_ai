@@ -5,10 +5,17 @@ export const API = {
     REGISTER: "/auth/register",
     LOGIN: "/auth/login",
     ME: "/auth/me",
+    GOOGLE: "/auth/google",
+    GOOGLE_STATUS: "/auth/google/status",
+    REQUEST_PASSWORD_RESET: "/auth/request-password-reset",
+    RESET_PASSWORD: (token: string) => `/auth/reset-password/${token}`,
   },
   ADMIN: {
     USERS: {
-      LIST: "/admin/users",
+      LIST: (params?: { page?: number; limit?: number }) =>
+        params
+          ? `/admin/users?page=${params.page ?? 1}&limit=${params.limit ?? 10}`
+          : "/admin/users",
       GET: (id: string) => `/admin/users/${id}`,
       CREATE: "/admin/users",
       UPDATE: (id: string) => `/admin/users/${id}`,
