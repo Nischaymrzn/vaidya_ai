@@ -10,13 +10,30 @@ export type ApiResponse<T = unknown> = {
   data?: T;
 };
 
-// Get all users
-export async function getAllUsers(): Promise<ApiResponse<TUser[]>> {
+export type PaginationInfo = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+};
+
+// Get all users with pagination
+export async function getAllUsers(params?: {
+  page?: number;
+  limit?: number;
+}): Promise<ApiResponse<TUser[]> & { pagination?: PaginationInfo }> {
   try {
-    const response = await api.get(API.ADMIN.USERS.LIST);
+    const response = await api.get(
+      API.ADMIN.USERS.LIST({ page: params?.page ?? 1, limit: params?.limit ?? 10 })
+    );
+    const data = response.data.data ?? response.data;
+    const pagination = response.data.pagination;
     return {
       success: true,
-      data: response.data.data || response.data,
+      data: Array.isArray(data) ? data : [],
+      pagination,
     };
   } catch (error: Error | any) {
     const errorMessage =
