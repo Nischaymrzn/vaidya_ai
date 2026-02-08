@@ -45,9 +45,10 @@ type FormData = z.infer<typeof createUserSchema>;
 interface CreateUserModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
+export function CreateUserModal({ open, onOpenChange, onSuccess }: CreateUserModalProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -79,6 +80,7 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
         toast.success("User created successfully");
         reset();
         onOpenChange(false);
+        onSuccess?.();
         router.refresh();
       } else {
         toast.error(result.message || "Failed to create user");
