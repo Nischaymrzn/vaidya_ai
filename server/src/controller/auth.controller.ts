@@ -28,7 +28,7 @@ export class AuthController {
     }
     const createdUser = await userServices.createUser(parsedData.data);
 
-    return res.json(
+    return res.status(StatusCodes.CREATED).json(
       new ApiResponse(201, responseMessages.USER.CREATED, createdUser),
     );
   });
@@ -47,7 +47,7 @@ export class AuthController {
       parsedData.data,
     );
 
-    return res.json(
+    return res.status(StatusCodes.CREATED).json(
       new ApiResponse(201, responseMessages.USER.LOGGED_IN, {
         user,
         accessToken,
@@ -120,3 +120,5 @@ export class AuthController {
     );
   });
 }
+
+
