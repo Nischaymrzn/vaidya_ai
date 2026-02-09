@@ -11,7 +11,6 @@ export const getCurrentUser = cache(async (): Promise<TUser | null> => {
 
   try {
     const response = await getMe();
-    console.log(response);
     return response.data ?? null;
   } catch {
     console.log("Failed to fetch user");
