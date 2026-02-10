@@ -35,6 +35,11 @@ const userSchema = new mongoose.Schema<UserType>(
       type: Boolean,
       default: true,
     },
+    googleId: {
+      type: String,
+      sparse: true,
+      unique: true,
+    },
 
     deletedAt: Date,
   },

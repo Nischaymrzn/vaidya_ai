@@ -5,6 +5,8 @@ const errorMessages = {
     UPDATE_FAILED: "Failed to update user. Check input and retry.",
     DELETION_FAILED: "Failed to delete user. Try again later.",
     INVALID_CREDENTIALS: "Invalid credentials. Check and retry.",
+    PASSWORD_NOT_SET:
+      "Password not set for this account. Use Google sign-in or reset your password.",
     EXIST: "User with this email already exists.",
     UNAUTHORIZED: "Access denied.",
   },

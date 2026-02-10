@@ -1,19 +1,51 @@
 import { UserType } from "../types/user.types";
 import { UserDocument, User } from "../models/auth.model";
 
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 export interface IUserRepository {
   createUser(userData: Partial<UserType>): Promise<UserDocument>;
   getUserByEmail(email: string): Promise<UserDocument | null>;
-  getUserById(id: string): Promise<UserType | null>; 
-  getAllUsers(): Promise<UserType[]>;
-  updateOneUser(id: string, data: Partial<UserType>): Promise<UserType | null>; 
-  deleteOneUser(id: string): Promise<boolean | null>;  
+  getUserByGoogleId(googleId: string): Promise<UserDocument | null>;
+  getUserById(id: string): Promise<UserType | null>;
+  getAllUsers(options?: PaginationParams): Promise<PaginatedResult<UserType>>;
+  updateOneUser(id: string, data: Partial<UserType>): Promise<UserType | null>;
+  deleteOneUser(id: string): Promise<boolean | null>;
 }
 
 export class UserRepository implements IUserRepository {
-  async getAllUsers(): Promise<UserType[]> {
-    const users = await User.find();
-    return users;
+  async getAllUsers(options?: PaginationParams): Promise<PaginatedResult<UserType>> {
+    const page = Math.max(1, options?.page ?? 1);
+    const limit = Math.min(100, Math.max(1, options?.limit ?? 10));
+
+    const skip = (page - 1) * limit;
+    const [users, total] = await Promise.all([
+      User.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      User.countDocuments(),
+    ]);
+
+    return {
+      data: users as UserType[],
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+      hasNext: page * limit < total,
+      hasPrev: page > 1,
+    };
   }
   async createUser(userData: Partial<UserType>): Promise<UserDocument> {
     return User.create(userData);
@@ -21,6 +53,10 @@ export class UserRepository implements IUserRepository {
 
   async getUserByEmail(email: string): Promise<UserDocument | null> {
     return User.findOne({ email });
+  }
+
+  async getUserByGoogleId(googleId: string): Promise<UserDocument | null> {
+    return User.findOne({ googleId });
   }
 
   async getUserById(id: string): Promise<UserDocument | null> {

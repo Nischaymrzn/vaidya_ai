@@ -136,7 +136,7 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
           </div>
           <div className="space-y-2">
             <Label>Email</Label>
-            <Input type="email" {...register("email")} placeholder="you@example.com" />
+            <Input type="email" {...register("email")} placeholder="you@gmail.com" />
             {errors.email && (
               <p className="text-xs text-destructive">{errors.email.message}</p>
             )}

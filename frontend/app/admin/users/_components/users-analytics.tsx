@@ -21,7 +21,6 @@ const CHART_COLORS = {
 };
 
 export function UsersAnalytics({ users }: UsersAnalyticsProps) {
-  console.log("UsersAnalytics users:", users);
   const roleData = [
     {
       name: "Admin",

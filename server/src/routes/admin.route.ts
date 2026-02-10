@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { UserController } from "../controller/user.controller";
+import { AdminUserController } from "../controller/admin.controller";
 import { middlewares } from "../middlewares/authorization.middleware";
 import { uploads } from "../middlewares/upload.middleware";
 
-let adminUserController = new UserController();
+let adminUserController = new AdminUserController();
 const adminRouter = Router();
 
 adminRouter.get(

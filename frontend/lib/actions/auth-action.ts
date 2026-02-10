@@ -50,3 +50,44 @@ export async function getMe() {
     };
   }
 }
+
+function formatErrorMessage(
+  err: unknown,
+  fallback: string
+): string {
+  const data = (err as { response?: { data?: { message?: unknown } }; message?: string })?.response?.data?.message ?? (err as { message?: string })?.message;
+  if (typeof data === "string") return data;
+  if (data && typeof data === "object") {
+    const first = Object.values(data).flat()[0];
+    return typeof first === "string" ? first : fallback;
+  }
+  return fallback;
+}
+
+export async function requestPasswordReset(email: string) {
+  try {
+    const response = await api.post(API.AUTH.REQUEST_PASSWORD_RESET, {
+      email,
+    });
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: formatErrorMessage(error, "Failed to send reset email"),
+    };
+  }
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  try {
+    const response = await api.post(API.AUTH.RESET_PASSWORD(token), {
+      newPassword,
+    });
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: formatErrorMessage(error, "Failed to reset password"),
+    };
+  }
+}

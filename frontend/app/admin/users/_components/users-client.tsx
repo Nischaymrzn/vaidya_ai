@@ -1,30 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { TUser, Role } from "@/lib/definition";
 import { UsersTable } from "./users-table";
 import { UsersAnalytics } from "./users-analytics";
 import { CreateUserModal } from "./create-user-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, UserCheck, ShieldCheck, Table2, BarChart3 } from "lucide-react";
+import { Users, UserCheck, ShieldCheck, Table2, BarChart3, Loader2 } from "lucide-react";
+import { getAllUsers, type PaginationInfo } from "@/lib/actions/admin-action";
 
-interface UsersClientProps {
-  users: TUser[];
-}
-
-export function UsersClient({ users }: UsersClientProps) {
+export function UsersClient() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [users, setUsers] = useState<TUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const fetchUsers = useCallback(
+    async (pageNum = 1) => {
+      setLoading(true);
+      try {
+        const res = await getAllUsers({ page: pageNum, limit });
+        if (res.success && res.data) {
+          setUsers(res.data);
+          setPagination(res.pagination ?? null);
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [limit]
+  );
 
-  const totalUsers = users.length;
-  const activeUsers = users.filter((u) => u.isActive !== false).length;
-  const adminUsers = users.filter((u) => u.role === Role.ADMIN).length;
+  console.log(users, pagination);
 
-  const stats = [
-    { label: "Total Users", value: totalUsers, icon: Users },
-    { label: "Active", value: activeUsers, icon: UserCheck },
-    { label: "Admins", value: adminUsers, icon: ShieldCheck },
-  ];
+  useEffect(() => {
+    fetchUsers(page);
+  }, [page, fetchUsers]);
+
+  const handleUserCreated = () => {
+    fetchUsers(page);
+  };
+
+  const handleUserDeleted = () => {
+    fetchUsers(page);
+  };
 
   return (
     <div className="space-y-8">
@@ -34,23 +55,49 @@ export function UsersClient({ users }: UsersClientProps) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-                </div>
-                <stat.icon className="h-8 w-8 text-muted-foreground/50" />
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Users</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {loading ? "—" : pagination?.total ?? 0}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+              <Users className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">On This Page</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {loading ? "—" : users.length}
+                </p>
+              </div>
+              <UserCheck className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Admins</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {loading ? "—" : users.filter((u) => u.role === Role.ADMIN).length}
+                </p>
+              </div>
+              <ShieldCheck className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="table" className="space-y-4">
-        <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+        <TabsList className="grid w-full max-w-100 grid-cols-2">
           <TabsTrigger value="table" className="flex items-center gap-2">
             <Table2 className="h-4 w-4" />
             Table
@@ -61,14 +108,27 @@ export function UsersClient({ users }: UsersClientProps) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="table" className="space-y-4">
-          <UsersTable users={users} onCreateUser={() => setCreateModalOpen(true)} />
+          <UsersTable
+            users={users}
+            loading={loading}
+            pagination={pagination}
+            page={page}
+            limit={limit}
+            onPageChange={setPage}
+            onCreateUser={() => setCreateModalOpen(true)}
+            onUserDeleted={handleUserDeleted}
+          />
         </TabsContent>
         <TabsContent value="analytics" className="space-y-4">
           <UsersAnalytics users={users} />
         </TabsContent>
       </Tabs>
 
-      <CreateUserModal open={createModalOpen} onOpenChange={setCreateModalOpen} />
+      <CreateUserModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onSuccess={handleUserCreated}
+      />
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -31,18 +30,33 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { MoreHorizontal, Eye, Pencil, Trash2, Search, UserPlus, Loader2 } from "lucide-react";
+import { MoreHorizontal, Eye, Pencil, Trash2, Search, UserPlus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { TUser, Role } from "@/lib/definition";
 import { deleteUser } from "@/lib/actions/admin-action";
 import { toast } from "sonner";
+import type { PaginationInfo } from "@/lib/actions/admin-action";
 
 interface UsersTableProps {
   users: TUser[];
+  loading?: boolean;
+  pagination?: PaginationInfo | null;
+  page: number;
+  limit: number;
+  onPageChange: (page: number) => void;
   onCreateUser: () => void;
+  onUserDeleted?: () => void;
 }
 
-export function UsersTable({ users, onCreateUser }: UsersTableProps) {
-  const router = useRouter();
+export function UsersTable({
+  users,
+  loading = false,
+  pagination,
+  page,
+  limit,
+  onPageChange,
+  onCreateUser,
+  onUserDeleted,
+}: UsersTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<TUser | null>(null);
@@ -62,7 +76,9 @@ export function UsersTable({ users, onCreateUser }: UsersTableProps) {
       const result = await deleteUser(userToDelete._id || userToDelete.id);
       if (result.success) {
         toast.success("User deleted");
-        router.refresh();
+        setDeleteDialogOpen(false);
+        setUserToDelete(null);
+        onUserDeleted?.();
       } else {
         toast.error(result.message || "Failed to delete user");
       }
@@ -70,8 +86,6 @@ export function UsersTable({ users, onCreateUser }: UsersTableProps) {
       toast.error("Failed to delete user");
     } finally {
       setIsDeleting(false);
-      setDeleteDialogOpen(false);
-      setUserToDelete(null);
     }
   };
 
@@ -109,7 +123,13 @@ export function UsersTable({ users, onCreateUser }: UsersTableProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                    </TableCell>
+                  </TableRow>
+                ) : filteredUsers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                       No users found.
@@ -176,9 +196,35 @@ export function UsersTable({ users, onCreateUser }: UsersTableProps) {
               </TableBody>
             </Table>
           </div>
-          <p className="text-sm text-muted-foreground mt-4">
-            Showing {filteredUsers.length} of {users.length} users
-          </p>
+
+          {pagination && (
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing {((page - 1) * limit) + 1}–{Math.min(page * limit, pagination.total)} of {pagination.total}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!pagination.hasPrev || loading}
+                  onClick={() => onPageChange(page - 1)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {page} of {pagination.totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!pagination.hasNext || loading}
+                  onClick={() => onPageChange(page + 1)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

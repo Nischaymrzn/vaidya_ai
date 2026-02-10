@@ -15,6 +15,7 @@ export const UserSchema = z.object({
   isActive: z.coerce.boolean().default(false),
   deletedAt: z.date(),
   profilePicture: z.string().optional(),
+  googleId: z.string().optional(),
 });
 
 const User = UserSchema.pick({
@@ -26,3 +27,11 @@ const User = UserSchema.pick({
 
 export type User = z.infer<typeof User>;
 export type UserType = z.infer<typeof UserSchema>;
+
+/** User object as attached to Express Request (Mongoose document) */
+export interface AuthUser {
+  _id: unknown;
+  id?: string;
+  email: string;
+  role: string;
+}

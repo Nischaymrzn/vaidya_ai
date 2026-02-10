@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import { Role } from "@/lib/definition";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "./_components/app-sidebar";
+import { AppNavbar } from "./_components/app-navbar";
 
 export default async function ProtectedLayout({
   children,
@@ -13,8 +16,12 @@ export default async function ProtectedLayout({
   if (user.role === Role.ADMIN) redirect("/admin/users");
 
   return (
-    <div className="min-h-screen bg-background">
-      {children}
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <AppNavbar user={user} />
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
