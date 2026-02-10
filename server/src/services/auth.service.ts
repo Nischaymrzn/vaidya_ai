@@ -49,6 +49,12 @@ export class UserServices {
     if (!existingUser) {
       throw new ApiError(StatusCodes.BAD_REQUEST, errorMessages.USER.NOT_FOUND);
     }
+    if (!existingUser.password) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        errorMessages.USER.PASSWORD_NOT_SET,
+      );
+    }
     const validatedPassword = await bcryptUtil.compare(
       data.password,
       existingUser.password,
