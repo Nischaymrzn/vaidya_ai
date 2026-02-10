@@ -33,6 +33,8 @@ export function UsersClient() {
     [limit]
   );
 
+  console.log(users, pagination);
+
   useEffect(() => {
     fetchUsers(page);
   }, [page, fetchUsers]);
@@ -54,7 +56,7 @@ export function UsersClient() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Users</p>
@@ -67,7 +69,7 @@ export function UsersClient() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">On This Page</p>
@@ -80,7 +82,7 @@ export function UsersClient() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Admins</p>
@@ -95,7 +97,7 @@ export function UsersClient() {
       </div>
 
       <Tabs defaultValue="table" className="space-y-4">
-        <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+        <TabsList className="grid w-full max-w-100 grid-cols-2">
           <TabsTrigger value="table" className="flex items-center gap-2">
             <Table2 className="h-4 w-4" />
             Table

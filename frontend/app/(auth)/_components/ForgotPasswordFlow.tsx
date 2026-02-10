@@ -80,7 +80,7 @@ export function ForgotPasswordFlow() {
             <label className="text-sm font-medium text-foreground">Email</label>
             <Input
               type="email"
-              placeholder="you@example.com"
+              placeholder="you@gmail.com"
               className="h-11"
               {...register("email")}
             />

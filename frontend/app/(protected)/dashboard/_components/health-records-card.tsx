@@ -24,7 +24,7 @@ export function HealthRecordsCard({ items }: HealthRecordsCardProps) {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="pb-6 pt-0">
+      <CardContent className="pb-5 pt-0">
         <div className="grid gap-4 sm:grid-cols-3">
           {items.map((item) => (
             <div
