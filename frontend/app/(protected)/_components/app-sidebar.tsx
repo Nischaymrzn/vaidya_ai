@@ -142,7 +142,7 @@ export function AppSidebar() {
                     <>
                       {button}
                       {item.items && (
-                        <SidebarMenuSub className="relative mt-1 pl-7 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:rounded-full before:bg-border">
+                        <SidebarMenuSub className="relative mt-0.5 pl-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-px before:rounded-full before:bg-border">
                           {item.items.map((sub) => {
                             const subActive = pathname === sub.href
                             return (
@@ -150,7 +150,7 @@ export function AppSidebar() {
                                 <SidebarMenuSubButton
                                   asChild
                                   isActive={subActive}
-                                  className="relative gap-3 rounded-lg px-5 py-4.5 text-[14.5px] font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary [&>svg]:shrink-0 before:absolute before:left-2 before:top-1/2 before:h-px before:w-3 before:-translate-x-full before:rounded-full before:bg-border"
+                                  className="relative gap-3 rounded-lg px-4 py-4.5 text-[14.5px] font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary [&>svg]:shrink-0 before:absolute before:left-1.5 before:top-1/2 before:h-px before:w-2.5 before:-translate-x-full before:rounded-full before:bg-border"
                                 >
                                   <Link
                                     href={sub.href}

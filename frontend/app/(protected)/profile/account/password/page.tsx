@@ -1,10 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { getCurrentUser } from "@/lib/dal";
 import { ProfileBackLink } from "../../_components/profile-back-link";
+import { PasswordForm } from "./_components/password-form";
 
-export default function PasswordPage() {
+export default async function PasswordPage() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
   return (
     <div className="space-y-6">
       <ProfileBackLink />
@@ -14,26 +15,7 @@ export default function PasswordPage() {
           Change your password
         </p>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Change password</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Current password</Label>
-            <Input type="password" placeholder="Enter current password" />
-          </div>
-          <div className="space-y-2">
-            <Label>New password</Label>
-            <Input type="password" placeholder="Enter new password" />
-          </div>
-          <div className="space-y-2">
-            <Label>Confirm new password</Label>
-            <Input type="password" placeholder="Confirm new password" />
-          </div>
-          <Button className="bg-[#1F7AE0] hover:bg-[#1B6BB8]">Update password</Button>
-        </CardContent>
-      </Card>
+      <PasswordForm user={user} />
     </div>
   );
 }

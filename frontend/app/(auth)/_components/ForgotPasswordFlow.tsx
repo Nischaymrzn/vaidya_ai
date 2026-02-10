@@ -18,7 +18,7 @@ export function ForgotPasswordFlow() {
   // Step 2: Check email
   if (step === 2) {
     return (
-      <div className="w-full max-w-[500px] mx-auto space-y-6">
+      <div className="w-full max-w-125 mx-auto space-y-6">
         <div className="flex justify-center gap-1.5">
           {[1, 2, 3].map((i) => (
             <div
@@ -57,7 +57,7 @@ export function ForgotPasswordFlow() {
 
   // Step 1: Enter email
   return (
-    <div className="w-full max-w-[500px] mx-auto space-y-6">
+    <div className="w-full max-w-125 mx-auto space-y-6">
       <div className="flex justify-center gap-1.5">
         {[1, 2, 3].map((i) => (
           <div
