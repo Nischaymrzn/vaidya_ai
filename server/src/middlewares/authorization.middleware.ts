@@ -60,4 +60,18 @@ const adminOnlyMiddleware = (req: Request, res: Response, next: NextFunction) =>
   }
 }
 
-export const middlewares = { isAuthenticated, adminOnlyMiddleware }
+const userOnlyMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  try{
+      if(req.user && req.user.role !== "admin"){
+          next();
+      }else{
+          throw new ApiError(403, "Forbidden, Users only");
+      }
+  }catch(error: Error | any){
+      return res.status(error.statusCode || 403).json(
+          { success: false, message: error.message || "Forbidden"}
+      );
+  }
+}
+
+export const middlewares = { isAuthenticated, adminOnlyMiddleware, userOnlyMiddleware }
