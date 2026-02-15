@@ -5,16 +5,23 @@ import { uploads } from "../middlewares/upload.middleware";
 let userController = new UserController();
 const userRouter = Router();
 
-userRouter.get("/:id", middlewares.isAuthenticated, userController.getUserById);
+userRouter.get(
+  "/:id",
+  middlewares.isAuthenticated,
+  middlewares.userOnlyMiddleware,
+  userController.getUserById,
+);
 userRouter.put(
   "/:id",
   middlewares.isAuthenticated,
+  middlewares.userOnlyMiddleware,
   uploads.single("image"),
   userController.updateOneUser,
 );
 userRouter.delete(
   "/:id",
   middlewares.isAuthenticated,
+  middlewares.userOnlyMiddleware,
   userController.deleteOneUser,
 );
 
