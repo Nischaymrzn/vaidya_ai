@@ -25,7 +25,8 @@ export const env = {
   PASSWORD_RESET_EXPIRY:
     (process.env.PASSWORD_RESET_EXPIRY as StringValue) ?? "1h",
   CLIENT_URL: process.env.CLIENT_URL ?? "http://localhost:3000",
-  SERVER_URL: process.env.SERVER_URL ?? process.env.API_URL ?? "http://localhost:5000",
+  SERVER_URL:
+    process.env.SERVER_URL ?? process.env.API_URL ?? "http://localhost:5000",
   SMTP_HOST: requiredEnv("SMTP_HOST"),
   SMTP_PORT: Number(process.env.SMTP_PORT ?? "587"),
   SMTP_USER: requiredEnv("SMTP_USER"),
@@ -38,4 +39,6 @@ export const env = {
   CLOUDINARY_FOLDER: process.env.CLOUDINARY_FOLDER ?? "vaidya",
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
+  GEMINI_API_URL: process.env.GEMINI_API_URL ?? "",
 };

@@ -31,7 +31,7 @@ function createRedirectWithClearedToken(url: string, req: NextRequest) {
     path: "/",
     maxAge: 0,
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
   });
   return response;
@@ -71,12 +71,9 @@ export async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL("/admin/users", req.url));
     }
 
-    // Authenticated user on public paths - redirect based on role
+    // Public paths are always accessible; avoid redirect loops if token is stale
     if (isPublicPath) {
-      if (decoded.role === "admin") {
-        return NextResponse.redirect(new URL("/admin/users", req.url));
-      }
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      return NextResponse.next();
     }
   }
 

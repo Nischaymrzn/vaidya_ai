@@ -32,7 +32,7 @@ export function ProtectedHeader({ user }: ProtectedHeaderProps) {
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="text-xl font-bold text-foreground">
+            <Link href="/dashboard" prefetch={false} className="text-xl font-bold text-foreground">
               Vaidya
             </Link>
           </div>

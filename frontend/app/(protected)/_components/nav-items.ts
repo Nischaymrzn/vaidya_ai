@@ -47,7 +47,7 @@ export const mainNavItems: NavItem[] = [
         label: "Risk Analysis",
         icon: Brain,
       },
-      { href: "/ai-assistant", label: "AI Assistant", icon: Sparkles },
+      { href: "/ai-assistant", label: "Vaidya.ai", icon: Sparkles },
     ],
   },
 ];

@@ -1,4 +1,3 @@
-import { Activity, AlertTriangle, ClipboardList } from "lucide-react";
 import type {
   ClinicalItem,
   HealthScorePoint,
@@ -94,9 +93,9 @@ export const clinicalItems: ClinicalItem[] = [
 export const HEALTH_SCORE = 82;
 
 export const CHART_COLORS = {
-  heartRate: "#7dd3fc",
-  systolic: "#93c5fd",
-  glucose: "#a5b4fc",
+  heartRate: "#1F7AE0",
+  systolic: "#1F7AE0",
+  glucose: "#1F7AE0",
 };
 
 export const summaryCards: SummaryCard[] = [
@@ -108,7 +107,7 @@ export const summaryCards: SummaryCard[] = [
     surface: "bg-white",
     border: "border-slate-200/80",
     valueClass: "text-slate-900",
-    icon: ClipboardList,
+    iconName: "clipboard",
     iconBg: "bg-gray-100",
     iconRing: "ring-gray-100",
     iconColor: "text-gray-700",
@@ -121,7 +120,7 @@ export const summaryCards: SummaryCard[] = [
     surface: "bg-white",
     border: "border-slate-200/80",
     valueClass: "text-slate-900",
-    icon: Activity,
+    iconName: "activity",
     iconBg: "bg-gray-100",
     iconRing: "ring-gray-100",
     iconColor: "text-gray-700",
@@ -134,7 +133,7 @@ export const summaryCards: SummaryCard[] = [
     surface: "bg-white",
     border: "border-slate-200/80",
     valueClass: "text-slate-900",
-    icon: AlertTriangle,
+    iconName: "alert",
     iconBg: "bg-gray-100",
     iconRing: "ring-gray-100",
     iconColor: "text-gray-700",

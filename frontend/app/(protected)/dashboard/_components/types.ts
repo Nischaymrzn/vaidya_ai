@@ -1,10 +1,8 @@
-import type { LucideIcon } from "lucide-react"
-
 export type VitalDataPoint = {
   day: string
-  heartRate: number
-  systolic: number
-  glucose: number
+  heartRate: number | null
+  systolic: number | null
+  glucose: number | null
 }
 
 export type HealthScorePoint = {
@@ -21,6 +19,7 @@ export type MedicationItem = {
   name: string
   dose: string
   adherence: number
+  meta?: string
 }
 
 export type TimelineItem = {
@@ -55,7 +54,7 @@ export type SummaryCard = {
   surface: string
   border: string
   valueClass: string
-  icon: LucideIcon
+  iconName: "clipboard" | "activity" | "alert"
   iconBg: string
   iconRing: string
   iconColor: string
