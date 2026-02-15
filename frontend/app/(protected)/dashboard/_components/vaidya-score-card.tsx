@@ -10,6 +10,7 @@ type VaidyaScoreCardProps = {
 
 export function VaidyaScoreCard({ score, trend }: VaidyaScoreCardProps) {
   const hasScore = typeof score === "number" && Number.isFinite(score)
+
   const displayScore = hasScore ? Math.round(score) : "--"
   const label = hasScore
     ? score >= 80

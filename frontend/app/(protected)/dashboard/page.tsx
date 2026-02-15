@@ -3,6 +3,7 @@ import { getDashboardSummary } from "@/lib/actions/dashboard-action";
 
 export default async function OverviewPage() {
   const summaryResult = await getDashboardSummary();
+
   const summary = summaryResult.data;
 
   return (
