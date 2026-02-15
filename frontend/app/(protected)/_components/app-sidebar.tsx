@@ -26,6 +26,7 @@ export function AppSidebar() {
   const pathname = usePathname()
   const { state, toggleSidebar } = useSidebar()
   const collapsed = state === "collapsed"
+  const shouldPrefetch = (href?: string) => href !== "/dashboard"
 
   const navItemClass = cn(
     "group gap-3 rounded-lg px-3 py-4.5 text-[15px] font-medium transition [&>svg]:h-5 [&>svg]:w-5 [&>svg]:shrink-0",
@@ -53,6 +54,7 @@ export function AppSidebar() {
         >
           <Link
             href="/dashboard"
+            prefetch={false}
             className={cn(
               "flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-sidebar-accent",
               collapsed && "flex-col px-0"
@@ -107,7 +109,11 @@ export function AppSidebar() {
                   className={navItemClass}
                 >
                   {item.href ? (
-                    <Link href={item.href} aria-current={active ? "page" : undefined}>
+                    <Link
+                      href={item.href}
+                      prefetch={shouldPrefetch(item.href)}
+                      aria-current={active ? "page" : undefined}
+                    >
                       <item.icon className="flex-none" />
                       <span className={cn("truncate", collapsed && "sr-only")}>
                         {item.label}
@@ -150,10 +156,11 @@ export function AppSidebar() {
                                 <SidebarMenuSubButton
                                   asChild
                                   isActive={subActive}
-                                  className="relative gap-3 rounded-lg px-4 py-4.5 text-[14.5px] font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary [&>svg]:shrink-0 before:absolute before:left-1.5 before:top-1/2 before:h-px before:w-2.5 before:-translate-x-full before:rounded-full before:bg-border"
+                                  className="relative gap-3 rounded-lg px-4 py-4.5 text-[14.5px] font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary [&>svg]:shrink-0"
                                 >
                                   <Link
                                     href={sub.href}
+                                    prefetch={shouldPrefetch(sub.href)}
                                     aria-current={subActive ? "page" : undefined}
                                   >
                                     <span className="truncate">{sub.label}</span>
