@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const user_data_controller_1 = require("../controller/user-data.controller");
+const authorization_middleware_1 = require("../middlewares/authorization.middleware");
+const userDataRouter = (0, express_1.Router)();
+const userDataController = new user_data_controller_1.UserDataController();
+userDataRouter.get("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, userDataController.getUserData);
+userDataRouter.patch("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, userDataController.updateUserData);
+exports.default = userDataRouter;

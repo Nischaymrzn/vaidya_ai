@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const vitals_controller_1 = require("../controller/vitals.controller");
+const authorization_middleware_1 = require("../middlewares/authorization.middleware");
+const vitalsRouter = (0, express_1.Router)();
+const vitalsController = new vitals_controller_1.VitalsController();
+vitalsRouter.post("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, vitalsController.createVitals);
+vitalsRouter.get("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, vitalsController.getAllVitals);
+vitalsRouter.get("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, vitalsController.getVitalsById);
+vitalsRouter.patch("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, vitalsController.updateVitals);
+vitalsRouter.delete("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, vitalsController.deleteVitals);
+exports.default = vitalsRouter;

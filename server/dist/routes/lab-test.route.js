@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const lab_test_controller_1 = require("../controller/lab-test.controller");
+const authorization_middleware_1 = require("../middlewares/authorization.middleware");
+const labTestRouter = (0, express_1.Router)();
+const labTestController = new lab_test_controller_1.LabTestController();
+labTestRouter.post("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, labTestController.createLabTest);
+labTestRouter.get("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, labTestController.getAllLabTests);
+labTestRouter.get("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, labTestController.getLabTestById);
+labTestRouter.patch("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, labTestController.updateLabTest);
+labTestRouter.delete("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, labTestController.deleteLabTest);
+exports.default = labTestRouter;

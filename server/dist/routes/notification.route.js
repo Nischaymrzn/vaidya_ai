@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const notification_controller_1 = require("../controller/notification.controller");
+const authorization_middleware_1 = require("../middlewares/authorization.middleware");
+const notificationRouter = (0, express_1.Router)();
+const notificationController = new notification_controller_1.NotificationController();
+notificationRouter.get("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, notificationController.getNotifications);
+notificationRouter.patch("/:id/read", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, notificationController.markRead);
+notificationRouter.patch("/read-all", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, notificationController.markAllRead);
+exports.default = notificationRouter;

@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const allergy_controller_1 = require("../controller/allergy.controller");
+const authorization_middleware_1 = require("../middlewares/authorization.middleware");
+const allergyRouter = (0, express_1.Router)();
+const allergyController = new allergy_controller_1.AllergyController();
+allergyRouter.post("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, allergyController.createAllergy);
+allergyRouter.get("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, allergyController.getAllAllergies);
+allergyRouter.get("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, allergyController.getAllergyById);
+allergyRouter.patch("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, allergyController.updateAllergy);
+allergyRouter.delete("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, allergyController.deleteAllergy);
+exports.default = allergyRouter;

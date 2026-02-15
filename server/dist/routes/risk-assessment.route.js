@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const risk_assessment_controller_1 = require("../controller/risk-assessment.controller");
+const authorization_middleware_1 = require("../middlewares/authorization.middleware");
+const riskAssessmentRouter = (0, express_1.Router)();
+const riskAssessmentController = new risk_assessment_controller_1.RiskAssessmentController();
+riskAssessmentRouter.post("/generate", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, riskAssessmentController.generate);
+riskAssessmentRouter.get("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, riskAssessmentController.getAssessments);
+riskAssessmentRouter.get("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, riskAssessmentController.getAssessmentById);
+exports.default = riskAssessmentRouter;

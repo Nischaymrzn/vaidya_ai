@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const health_insight_controller_1 = require("../controller/health-insight.controller");
+const authorization_middleware_1 = require("../middlewares/authorization.middleware");
+const healthInsightRouter = (0, express_1.Router)();
+const healthInsightController = new health_insight_controller_1.HealthInsightController();
+healthInsightRouter.get("/", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, healthInsightController.getInsights);
+healthInsightRouter.get("/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.userOnlyMiddleware, healthInsightController.getInsightById);
+exports.default = healthInsightRouter;

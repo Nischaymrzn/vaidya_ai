@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const admin_controller_1 = require("../controller/admin.controller");
+const authorization_middleware_1 = require("../middlewares/authorization.middleware");
+const upload_middleware_1 = require("../middlewares/upload.middleware");
+let adminUserController = new admin_controller_1.AdminUserController();
+const adminRouter = (0, express_1.Router)();
+adminRouter.get("/users", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.adminOnlyMiddleware, adminUserController.getAllUsers);
+adminRouter.get("/users/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.adminOnlyMiddleware, adminUserController.getUserById);
+adminRouter.patch("/users/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.adminOnlyMiddleware, upload_middleware_1.uploads.single("profilePicture"), adminUserController.updateOneUser);
+adminRouter.delete("/users/:id", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.adminOnlyMiddleware, adminUserController.deleteOneUser);
+adminRouter.post("/users", authorization_middleware_1.middlewares.isAuthenticated, authorization_middleware_1.middlewares.adminOnlyMiddleware, upload_middleware_1.uploads.single("profilePicture"), adminUserController.createUser);
+exports.default = adminRouter;
