@@ -1,9 +1,12 @@
-export default function Page() {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-      <h1 className="text-2xl font-semibold">vitals</h1>
-      <p className="text-muted-foreground">This page is under construction.</p>
-    </div>
-  )
-}
+import { getVitalsSummary } from "@/lib/actions/vitals-action";
+import { VitalsClient } from "./_components/vitals-client";
 
+export default async function VitalsPage() {
+  const summaryResult = await getVitalsSummary();
+  return (
+    <VitalsClient
+      summary={summaryResult.data ?? null}
+      error={summaryResult.success ? null : summaryResult.message}
+    />
+  );
+}
