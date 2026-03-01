@@ -11,6 +11,7 @@ import { env } from "./config/env";
 import { httpLogger } from "./lib/http-logger";
 import { logger } from "./lib/logger";
 import path from "path";
+import { diseasePredictionService } from "./services/disease-prediction.service";
 
 const app: Application = express();
 
@@ -32,6 +33,10 @@ app.use(`/${env.VERSION}/api/`, mainRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to Vaidya api!");
+});
+
+void diseasePredictionService.init().catch((error) => {
+  logger.error({ error }, "Failed to initialize disease prediction model");
 });
 
 connectDB();
