@@ -49,47 +49,6 @@ const priorityStyles: Record<string, string> = {
 const getPredictionLabel = (value?: number) =>
   value === 1 ? "Heart disease likely" : value === 0 ? "Heart disease unlikely" : "Pending"
 
-const buildReportLines = (
-  form: HeartDiseaseForm,
-  prediction: THeartDiseasePredictionResponse | null,
-) => {
-  if (!prediction) return []
-  const heartProbability =
-    prediction.probabilities.find((item) => item.label === 1)?.probability ??
-    prediction.probability
-  const nonHeartProbability =
-    prediction.probabilities.find((item) => item.label === 0)?.probability ?? 0
-  const lines: string[] = [
-    `Generated: ${new Date().toLocaleDateString("en-US")}`,
-    "",
-    "Summary",
-    `Risk level: ${prediction.riskLevel}`,
-    `Heart disease probability: ${heartProbability}%`,
-    `Non-heart disease probability: ${nonHeartProbability}%`,
-    `Prediction: ${getPredictionLabel(prediction.prediction)}`,
-    "",
-    "Input profile",
-    `Gender: ${form.gender || "N/A"}`,
-    `Smoking history: ${form.smoking_history || "N/A"}`,
-    `Age: ${form.age || "N/A"}`,
-    `BMI: ${form.bmi || "N/A"}`,
-    `HbA1c: ${form.HbA1c_level || "N/A"}%`,
-    `Blood glucose: ${form.blood_glucose_level || "N/A"} mg/dL`,
-    `Hypertension: ${form.hypertension === "1" ? "Yes" : "No"}`,
-    `Cardiac history: ${form.heart_disease === "1" ? "Yes" : "No"}`,
-    "",
-    "Insights",
-    ...prediction.insights.map(
-      (item, index) => `${index + 1}. ${item.title} - ${item.description}`,
-    ),
-    "",
-    "Notes",
-    "This report is informational and based on the provided data.",
-  ]
-
-  return lines
-}
-
 export default function HeartDiseasePredictionPage() {
   const [form, setForm] = useState<HeartDiseaseForm>({
     gender: "Female",
@@ -108,11 +67,11 @@ export default function HeartDiseasePredictionPage() {
 
   const isComplete = Boolean(
     form.gender &&
-      form.smoking_history &&
-      form.age &&
-      form.bmi &&
-      form.HbA1c_level &&
-      form.blood_glucose_level,
+    form.smoking_history &&
+    form.age &&
+    form.bmi &&
+    form.HbA1c_level &&
+    form.blood_glucose_level,
   )
 
   const heartProbability =
@@ -132,9 +91,79 @@ export default function HeartDiseasePredictionPage() {
         : "Low risk detected based on current inputs and history signals."
     : "Run analysis to view personalized risk and insights."
 
-  const reportLines = useMemo(
-    () => buildReportLines(form, prediction),
-    [form, prediction],
+  const reportMetrics = useMemo(
+    () => [
+      {
+        investigation: "Predicted heart disease probability",
+        result: analysisRequested && heartProbability !== null ? `${heartProbability}` : "N/A",
+        reference: "<35 low | 35-59 moderate | >=60 high",
+        status: analysisRequested && prediction ? riskLevel : "Pending",
+        unit: "%",
+      },
+      {
+        investigation: "Non-heart disease probability",
+        result: analysisRequested && nonHeartProbability !== null ? `${nonHeartProbability}` : "N/A",
+        reference: "Complementary class",
+        status: analysisRequested && prediction ? "Computed" : "Pending",
+        unit: "%",
+      },
+      {
+        investigation: "HbA1c",
+        result: form.HbA1c_level || "N/A",
+        reference: "< 5.7",
+        status: (Number(form.HbA1c_level) || 0) >= 5.7 ? "Elevated" : "Within range",
+        unit: "%",
+      },
+      {
+        investigation: "Blood glucose",
+        result: form.blood_glucose_level || "N/A",
+        reference: "70 - 99",
+        status: (Number(form.blood_glucose_level) || 0) > 110 ? "Elevated" : "Within range",
+        unit: "mg/dL",
+      },
+      {
+        investigation: "BMI",
+        result: form.bmi || "N/A",
+        reference: "18.5 - 24.9",
+        status: (Number(form.bmi) || 0) > 25 ? "Watch" : "Within range",
+        unit: "",
+      },
+      {
+        investigation: "Hypertension history",
+        result: form.hypertension === "1" ? "Yes" : "No",
+        reference: "N/A",
+        status: form.hypertension === "1" ? "Risk factor" : "Low impact",
+        unit: "",
+      },
+    ],
+    [analysisRequested, heartProbability, nonHeartProbability, prediction, riskLevel, form],
+  )
+
+  const reportComments = useMemo(
+    () => [
+      analysisRequested && prediction
+        ? `${riskLevel} cardiovascular risk detected by the model.`
+        : "Analysis pending. Run the model to generate interpretation.",
+      "AI output should be used with clinician review and updated lab history.",
+    ],
+    [analysisRequested, prediction, riskLevel],
+  )
+
+  const reportFindings = useMemo(
+    () =>
+      prediction?.insights?.length
+        ? prediction.insights.map((item) => `${item.title}: ${item.description}`)
+        : ["No model findings available."],
+    [prediction],
+  )
+
+  const reportRecommendations = useMemo(
+    () => [
+      "Maintain regular blood pressure and glucose monitoring.",
+      "Review cardiovascular risk factors with a clinician if risk is moderate/high.",
+      "Update records periodically for better model confidence and follow-up.",
+    ],
+    [],
   )
 
   const handleAnalyze = () => {
@@ -175,10 +204,7 @@ export default function HeartDiseasePredictionPage() {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Brain className="h-4 w-4" />
-                AI Prediction Suite
-              </div>
+
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                 Heart Disease Prediction
               </h1>
@@ -186,7 +212,6 @@ export default function HeartDiseasePredictionPage() {
                 Personalized estimates based on blood pressure, metabolic markers, lifestyle, and history.
               </p>
             </div>
-            <Badge className="bg-rose-100 text-rose-700">Cardiovascular model</Badge>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,0.55fr)_minmax(0,0.45fr)]">
@@ -367,7 +392,21 @@ export default function HeartDiseasePredictionPage() {
                   <ReportDownloadButton
                     title="Heart Disease Risk Report"
                     filename="heart-disease-risk-report.pdf"
-                    lines={reportLines}
+                    patient={{
+                      name: "Member",
+                      age: form.age || "N/A",
+                      sex: form.gender || "N/A",
+                      pid: "HEART-001",
+                    }}
+                    meta={{
+                      module: "Heart Disease Prediction",
+                      referredBy: "Vaidya AI",
+                      collectedAt: new Date().toLocaleDateString("en-US"),
+                    }}
+                    metrics={reportMetrics}
+                    comments={reportComments}
+                    findings={reportFindings}
+                    recommendations={reportRecommendations}
                     disabled={!prediction}
                     className="w-full rounded-full"
                   />
