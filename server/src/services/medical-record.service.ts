@@ -10,7 +10,6 @@ import {
 import { VitalsService } from "./vitals.service";
 import { SymptomsService } from "./symptoms.service";
 import { MedicationsService } from "./medications.service";
-import { LabTestService } from "./lab-test.service";
 import { MedicalFileService } from "./medical-file.service";
 import { AllergyService } from "./allergy.service";
 import { ImmunizationService } from "./immunization.service";
@@ -21,7 +20,6 @@ const medicalRecordRepository = new MedicalRecordRepository();
 const vitalsService = new VitalsService();
 const symptomsService = new SymptomsService();
 const medicationsService = new MedicationsService();
-const labTestService = new LabTestService();
 const medicalFileService = new MedicalFileService();
 const allergyService = new AllergyService();
 const immunizationService = new ImmunizationService();
@@ -42,7 +40,6 @@ export class MedicalRecordService {
       vitals,
       symptoms,
       medications,
-      labTests,
       medicalFiles,
       allergies,
       immunizations,
@@ -78,15 +75,24 @@ export class MedicalRecordService {
     }
 
     const recordId = String(record._id);
+    const recordDiagnosis = recordData.diagnosis;
+
+    const applyRecordDiagnosis = <T extends Record<string, unknown>>(item: T) => {
+      if (!recordDiagnosis) return item;
+      const updated = { ...item } as T & {
+        diagnosis?: string;
+        disease?: string;
+      };
+      if (!updated.diagnosis) updated.diagnosis = recordDiagnosis;
+      if (!updated.disease) updated.disease = recordDiagnosis;
+      return updated;
+    };
 
     const vitalsList = asArray(vitals).filter((item) => !isEmptyObject(item));
     const symptomsList = asArray(symptoms).filter(
       (item) => !isEmptyObject(item),
     );
     const medicationsList = asArray(medications).filter(
-      (item) => !isEmptyObject(item),
-    );
-    const labTestsList = asArray(labTests).filter(
       (item) => !isEmptyObject(item),
     );
     const medicalFilesList = asArray(medicalFiles).filter(
@@ -103,7 +109,6 @@ export class MedicalRecordService {
       vitals: [] as string[],
       symptoms: [] as string[],
       medications: [] as string[],
-      labTests: [] as string[],
       medicalFiles: [] as string[],
       allergies: [] as string[],
       immunizations: [] as string[],
@@ -119,24 +124,17 @@ export class MedicalRecordService {
       }
       for (const item of symptomsList) {
         const created = await symptomsService.createSymptoms(userId, {
-          ...item,
+          ...applyRecordDiagnosis(item),
           recordId,
         });
         createdIds.symptoms.push(String(created._id));
       }
       for (const item of medicationsList) {
         const created = await medicationsService.createMedication(userId, {
-          ...item,
+          ...applyRecordDiagnosis(item),
           recordId,
         });
         createdIds.medications.push(String(created._id));
-      }
-      for (const item of labTestsList) {
-        const created = await labTestService.createLabTest(userId, {
-          ...item,
-          recordId,
-        });
-        createdIds.labTests.push(String(created._id));
       }
       for (const item of allergiesList) {
         const created = await allergyService.createAllergy(userId, {
@@ -190,9 +188,6 @@ export class MedicalRecordService {
         createdIds.medications.map((id) =>
           medicationsService.deleteMedication(userId, id),
         ),
-      );
-      await Promise.allSettled(
-        createdIds.labTests.map((id) => labTestService.deleteLabTest(userId, id)),
       );
       await Promise.allSettled(
         createdIds.allergies.map((id) =>

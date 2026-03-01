@@ -66,7 +66,6 @@ function normalizePayload(payload: Record<string, unknown>) {
     "vitals",
     "symptoms",
     "medications",
-    "labTests",
     "medicalFiles",
     "allergies",
     "immunizations",

@@ -9,10 +9,39 @@ import {
 const medicationsRepository = new MedicationsRepository();
 const medicalRecordRepository = new MedicalRecordRepository();
 
+const withRecordDiagnosis = async (
+  userId: string,
+  recordId: string | undefined,
+  diagnosis?: string,
+  disease?: string,
+) => {
+  if (!recordId || (diagnosis && disease)) return { diagnosis, disease };
+  const record = await medicalRecordRepository.getRecordForUser(
+    recordId,
+    userId,
+  );
+  if (!record?.diagnosis) return { diagnosis, disease };
+  return {
+    diagnosis: diagnosis ?? record.diagnosis,
+    disease: disease ?? record.diagnosis,
+  };
+};
+
 export class MedicationsService {
   async createMedication(userId: string, data: CreateMedicationsPayload) {
     const { recordId, ...payload } = data;
-    const medication = await medicationsRepository.create({ ...payload, userId });
+    const diagnosisInfo = await withRecordDiagnosis(
+      userId,
+      recordId,
+      payload.diagnosis,
+      payload.disease,
+    );
+    const medication = await medicationsRepository.create({
+      ...payload,
+      ...diagnosisInfo,
+      userId,
+      ...(recordId ? { recordId } : {}),
+    });
     if (!medication) throw new ApiError(500, "Failed to create medication");
 
     if (recordId) {
@@ -55,11 +84,17 @@ export class MedicationsService {
     if (!existing) throw new ApiError(404, "Medication not found");
 
     const { recordId, ...payload } = data;
-    const updated = await medicationsRepository.update(
-      medicationId,
+    const diagnosisInfo = await withRecordDiagnosis(
       userId,
-      payload,
+      recordId,
+      payload.diagnosis,
+      payload.disease,
     );
+    const updated = await medicationsRepository.update(medicationId, userId, {
+      ...payload,
+      ...diagnosisInfo,
+      ...(recordId ? { recordId } : {}),
+    });
     if (!updated) throw new ApiError(500, "Failed to update medication");
 
     if (recordId) {

@@ -3,8 +3,6 @@ import { MedicationsSchema } from "../types/medications.types";
 
 export const CreateMedicationsDto = MedicationsSchema.omit({
   userId: true,
-}).extend({
-  recordId: z.string().optional(),
 });
 
 export type CreateMedicationsDto = z.infer<typeof CreateMedicationsDto>;

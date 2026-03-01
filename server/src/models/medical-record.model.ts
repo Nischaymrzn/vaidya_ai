@@ -31,7 +31,6 @@ const recordItemSchema = new mongoose.Schema(
         "vitals",
         "symptoms",
         "medications",
-        "lab_tests",
         "medical_files",
         "allergies",
         "immunizations",
@@ -79,6 +78,11 @@ const medicalRecordSchema = new mongoose.Schema<MedicalRecordDb>(
     },
     diagnosis: {
       type: String,
+    },
+    diagnosisStatus: {
+      type: String,
+      enum: ["active", "resolved", "unknown"],
+      default: "active",
     },
     content: {
       type: String,
