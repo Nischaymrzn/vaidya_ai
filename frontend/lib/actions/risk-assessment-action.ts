@@ -2,7 +2,7 @@
 
 import { api } from "../api/axios-instance";
 import { API } from "../api/endpoints";
-import type { TRiskAssessment } from "../definition";
+import type { TRiskAssessment, THealthInsight } from "../definition";
 
 export type ApiResponse<T = unknown> = {
   success: boolean;
@@ -47,8 +47,20 @@ export async function generateRiskAssessment(payload?: {
   notes?: string;
   useLatest?: boolean;
   includeAi?: boolean;
+  includeAnalysis?: boolean;
   reportId?: string;
-}): Promise<ApiResponse<{ assessment?: TRiskAssessment }>> {
+}): Promise<
+  ApiResponse<{
+    assessment?: TRiskAssessment;
+    insights?: THealthInsight[];
+    sources?: {
+      vitalsIds?: string[];
+      symptomsIds?: string[];
+      medicationId?: string;
+    };
+    signals?: Record<string, unknown>;
+  }>
+> {
   try {
     const response = await api.post(API.RISK_ASSESSMENTS.GENERATE, payload ?? {});
     return {
