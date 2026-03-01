@@ -41,4 +41,9 @@ export const env = {
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "",
   GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
   GEMINI_API_URL: process.env.GEMINI_API_URL ?? "",
+  GROQ_API_KEY: process.env.GROQ_API_KEY ?? "",
+  AI_MODEL: process.env.AI_MODEL ?? "llama-3.1-8b-instant",
+  AI_CHAT_ENDPOINT:
+    process.env.AI_CHAT_ENDPOINT ??
+    "https://api.groq.com/openai/v1/chat/completions",
 };
