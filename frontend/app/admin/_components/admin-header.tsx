@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { LogOut, Users } from "lucide-react";
@@ -8,6 +9,7 @@ import { logout } from "@/lib/actions/auth-action";
 import { toast } from "sonner";
 import { TUser } from "@/lib/definition";
 import { cn } from "@/lib/utils";
+import logo from "@/public/logo.svg";
 
 interface AdminHeaderProps {
   user: TUser;
@@ -36,8 +38,14 @@ export function AdminHeader({ user }: AdminHeaderProps) {
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/admin/users" className="text-xl font-bold text-foreground">
-              Admin Panel
+            <Link
+              href="/admin/users"
+              className="flex items-center gap-2 text-xl font-bold text-foreground"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-200">
+                <Image src={logo} alt="Vaidya logo" width={20} height={20} />
+              </span>
+              <span>Admin Panel</span>
             </Link>
             <nav className="flex items-center gap-1">
               {navItems.map((item) => (

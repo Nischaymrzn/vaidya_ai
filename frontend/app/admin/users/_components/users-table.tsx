@@ -200,7 +200,7 @@ export function UsersTable({
           {pagination && (
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing {((page - 1) * limit) + 1}–{Math.min(page * limit, pagination.total)} of {pagination.total}
+                Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, pagination.total)} of {pagination.total}
               </p>
               <div className="flex items-center gap-2">
                 <Button

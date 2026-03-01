@@ -7,7 +7,7 @@ import { UsersAnalytics } from "./users-analytics";
 import { CreateUserModal } from "./create-user-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, UserCheck, ShieldCheck, Table2, BarChart3, Loader2 } from "lucide-react";
+import { Users, UserCheck, ShieldCheck, Table2, BarChart3 } from "lucide-react";
 import { getAllUsers, type PaginationInfo } from "@/lib/actions/admin-action";
 
 export function UsersClient() {
@@ -32,8 +32,6 @@ export function UsersClient() {
     },
     [limit]
   );
-
-  console.log(users, pagination);
 
   useEffect(() => {
     fetchUsers(page);
