@@ -950,11 +950,11 @@ export default function Records() {
   }
 
   return (
-    <div className="flex w-full flex-1 flex-col bg-slate-50/50">
-      <div className="border-b border-slate-200 bg-background">
-        <div className="flex w-full flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="flex w-full flex-1 flex-col bg-linear-to-b from-primary/5 via-slate-50/50 to-white">
+      <div className="border-b border-slate-200/70 bg-background/80 backdrop-blur">
+        <div className="flex w-full flex-col gap-4 px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-1">
+            <div className="space-y-2">
 
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                 Records center
@@ -973,8 +973,7 @@ export default function Records() {
                 onChange={handleScanFileChange}
               />
               <Button
-                variant="outline"
-                className="rounded-full"
+                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleScanClick}
               >
                 <Sparkles className="h-4 w-4" />
@@ -982,7 +981,7 @@ export default function Records() {
               </Button>
               <Button
                 variant="outline"
-                className="rounded-full"
+                className="rounded-full border-primary/30 text-primary hover:bg-primary/10"
                 onClick={handleScanClick}
               >
                 <ImagePlus className="h-4 w-4" />
@@ -2106,17 +2105,23 @@ export default function Records() {
             </div>
           </div>
 
-          <StatGrid items={overviewStats} columns={4} />
+          <StatGrid
+            items={overviewStats}
+            columns={4}
+            className="border-primary/15 ring-1 ring-primary/5"
+          />
         </div>
       </div>
 
-      <div className="flex w-full flex-1 flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex w-full flex-1 flex-col gap-4 px-4 py-5 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-primary/15 bg-white px-4 py-4 shadow-sm">
           <div className="flex flex-wrap items-end gap-3">
             <div className="grid gap-1">
-              <Label className="text-xs text-muted-foreground">Sort by</Label>
+              <Label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Sort by
+              </Label>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="h-9 w-[160px]">
+                <SelectTrigger className="h-9 w-[160px] rounded-full border-primary/20 bg-primary/5">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2129,9 +2134,11 @@ export default function Records() {
               </Select>
             </div>
             <div className="grid gap-1">
-              <Label className="text-xs text-muted-foreground">Category</Label>
+              <Label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Category
+              </Label>
               <Select value={activeCategory} onValueChange={setActiveCategory}>
-                <SelectTrigger className="h-9 w-[170px]">
+                <SelectTrigger className="h-9 w-[170px] rounded-full border-primary/20 bg-primary/5">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2144,9 +2151,11 @@ export default function Records() {
               </Select>
             </div>
             <div className="grid gap-1">
-              <Label className="text-xs text-muted-foreground">Status</Label>
+              <Label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Status
+              </Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9 w-[150px]">
+                <SelectTrigger className="h-9 w-[150px] rounded-full border-primary/20 bg-primary/5">
                   <SelectValue placeholder="Any status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2159,9 +2168,11 @@ export default function Records() {
               </Select>
             </div>
             <div className="grid gap-1">
-              <Label className="text-xs text-muted-foreground">Provider</Label>
+              <Label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Provider
+              </Label>
               <Select value={providerFilter} onValueChange={setProviderFilter}>
-                <SelectTrigger className="h-9 w-[180px]">
+                <SelectTrigger className="h-9 w-[180px] rounded-full border-primary/20 bg-primary/5">
                   <SelectValue placeholder="Any provider" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2174,9 +2185,11 @@ export default function Records() {
               </Select>
             </div>
             <div className="grid gap-1">
-              <Label className="text-xs text-muted-foreground">Date range</Label>
+              <Label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Date range
+              </Label>
               <Select value={dateFilter} onValueChange={setDateFilter}>
-                <SelectTrigger className="h-9 w-[150px]">
+                <SelectTrigger className="h-9 w-[150px] rounded-full border-primary/20 bg-primary/5">
                   <SelectValue placeholder="Any time" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2190,8 +2203,8 @@ export default function Records() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex min-w-[220px] items-center gap-2 rounded-full border bg-background px-3 py-1">
-              <Search className="h-4 w-4 text-muted-foreground" />
+            <div className="flex min-w-[220px] items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1">
+              <Search className="h-4 w-4 text-slate-400" />
               <Input
                 className="h-6 border-0 bg-transparent text-sm shadow-none focus-visible:ring-0"
                 placeholder="Search records..."
@@ -2201,7 +2214,11 @@ export default function Records() {
             </div>
             <Sheet open={folderSheetOpen} onOpenChange={setFolderSheetOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="rounded-full">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full"
+                >
                   <FolderOpen className="h-4 w-4" />
                   Manage folders
                 </Button>
@@ -2262,8 +2279,8 @@ export default function Records() {
         </div>
 
         <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-          <section className="rounded-2xl border border-slate-200/80 bg-background shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+          <section className="rounded-2xl border border-primary/15 bg-white shadow-sm ring-1 ring-primary/5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 px-4 py-3">
               <div>
                 <p className="text-base font-semibold text-slate-900">Documents</p>
                 <p className="text-sm text-slate-500">
@@ -2280,21 +2297,21 @@ export default function Records() {
                   <col className="w-[14%]" />
                   <col className="w-[8%]" />
                 </colgroup>
-                <thead className="text-xs text-slate-500">
-                  <tr className="border-b border-slate-200">
-                    <th className="px-5 py-3 text-left font-medium uppercase tracking-wider">
+                <thead className="text-[11px] text-slate-500">
+                  <tr className="border-b border-slate-200 bg-primary/5">
+                    <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">
                       Document
                     </th>
-                    <th className="px-5 py-3 text-left font-medium uppercase tracking-wider">
+                    <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">
                       Provider
                     </th>
-                    <th className="px-5 py-3 text-left font-medium uppercase tracking-wider">
+                    <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">
                       Last activity
                     </th>
-                    <th className="px-5 py-3 text-left font-medium uppercase tracking-wider">
+                    <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-5 py-3 text-right font-medium uppercase tracking-wider">
+                    <th className="px-5 py-3 text-right font-semibold uppercase tracking-wider">
                       Action
                     </th>
                   </tr>
@@ -2304,7 +2321,7 @@ export default function Records() {
                     filteredDocuments.map((row) => (
                       <tr
                         key={row.id}
-                        className="border-b border-slate-200 transition hover:bg-slate-50/50"
+                        className="border-b border-slate-200 transition hover:bg-primary/5"
                       >
                         <td className="px-5 py-3.5">
                           <div className="space-y-0.5">
@@ -2417,7 +2434,7 @@ export default function Records() {
                 </tbody>
               </table>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-3.5 text-sm text-slate-500">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/70 px-4 py-3 text-sm text-slate-500">
               <span>
                 Showing {pageStart} - {pageEnd} of{" "}
                 {pagination?.total ?? filteredDocuments.length} documents
@@ -2426,7 +2443,7 @@ export default function Records() {
                 <Button
                   variant="outline"
                   size="xs"
-                  className="rounded-full"
+                  className="rounded-full border-primary/30 text-primary hover:bg-primary/10"
                   disabled={!pagination?.hasPrev}
                   onClick={() => {
                     if (pagination?.hasPrev) {
@@ -2439,7 +2456,7 @@ export default function Records() {
                 <Button
                   variant="outline"
                   size="xs"
-                  className="rounded-full"
+                  className="rounded-full border-primary/30 text-primary hover:bg-primary/10"
                   disabled={!pagination?.hasNext}
                   onClick={() => {
                     if (pagination?.hasNext) {
@@ -2453,31 +2470,35 @@ export default function Records() {
             </div>
           </section>
 
-          <aside className="flex h-fit flex-col gap-5 xl:sticky xl:top-6">
-            <section className="rounded-2xl border border-slate-200/80 bg-background shadow-sm">
-              <div className="border-b border-slate-200 px-5 py-4">
+          <aside className="flex h-fit flex-col gap-4 xl:sticky xl:top-6">
+            <section className="rounded-2xl border border-primary/15 bg-white shadow-sm ring-1 ring-primary/5">
+              <div className="border-b border-slate-200/70 px-5 py-4">
                 <p className="text-base font-semibold text-slate-900">AI scan intake</p>
                 <p className="text-sm text-slate-500">
                   Upload a file to generate a draft record.
                 </p>
               </div>
               <div className="space-y-3 px-5 py-4">
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-4 text-center">
-                  <CloudUpload className="mx-auto h-6 w-6 text-[#1F7AE0]" />
+                <div className="rounded-2xl border border-dashed border-primary/20 bg-primary/5 p-4 text-center">
+                  <CloudUpload className="mx-auto h-6 w-6 text-primary" />
                   <p className="mt-2 text-sm font-medium text-slate-900">
                     Drop files here or click to upload
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
                     JPG, PNG, WEBP up to 5 MB.
                   </p>
-                  <Button size="sm" className="mt-3 rounded-full" onClick={handleScanClick}>
+                  <Button
+                    size="sm"
+                    className="mt-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={handleScanClick}
+                  >
                     Select files
                   </Button>
                 </div>
                 {selectedFile && (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-3">
+                  <div className="rounded-2xl border border-primary/15 bg-primary/5 p-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-background">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-primary/20 bg-white">
                         {selectedFileUrl ? (
                           <img
                             src={selectedFileUrl}
@@ -2485,7 +2506,7 @@ export default function Records() {
                             className="h-full w-full rounded-xl object-cover"
                           />
                         ) : (
-                          <FileImage className="h-5 w-5 text-slate-500" />
+                          <FileImage className="h-5 w-5 text-primary/70" />
                         )}
                       </div>
                       <div className="flex-1">
@@ -2496,22 +2517,33 @@ export default function Records() {
                           {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
                         </p>
                       </div>
-                      <Button variant="outline" size="xs" className="rounded-full" onClick={handleScanClick}>
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        className="rounded-full border-primary/30 text-primary hover:bg-primary/10"
+                        onClick={handleScanClick}
+                      >
                         Replace
                       </Button>
                     </div>
                   </div>
                 )}
-                <div className="flex flex-wrap gap-1.5 text-[11px] text-slate-500 pt-1.5">
-                  <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5">JPG</span>
-                  <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5">PNG</span>
-                  <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5">WEBP</span>
+                <div className="flex flex-wrap gap-1.5 pt-1.5 text-[11px] text-slate-500">
+                  <span className="rounded-full border border-primary/20 bg-white px-2 py-0.5 text-slate-600">
+                    JPG
+                  </span>
+                  <span className="rounded-full border border-primary/20 bg-white px-2 py-0.5 text-slate-600">
+                    PNG
+                  </span>
+                  <span className="rounded-full border border-primary/20 bg-white px-2 py-0.5 text-slate-600">
+                    WEBP
+                  </span>
                 </div>
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200/80 bg-background shadow-sm">
-              <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
+            <section className="rounded-2xl border border-primary/15 bg-white shadow-sm ring-1 ring-primary/5">
+              <div className="flex items-start justify-between gap-3 border-b border-slate-200/70 px-5 py-4">
                 <div>
                   <p className="text-base font-semibold text-slate-900">AI insights</p>
                   <p className="text-sm text-slate-500">
@@ -2521,7 +2553,7 @@ export default function Records() {
                 <Button
                   variant="outline"
                   size="xs"
-                  className="rounded-full"
+                  className="rounded-full border-primary/30 text-primary hover:bg-primary/10"
                   onClick={() => refreshAiInsights(true)}
                   disabled={aiInsightsLoading}
                 >
@@ -2530,7 +2562,7 @@ export default function Records() {
               </div>
               <div className="space-y-3 px-5 py-4 text-sm">
                 {aiInsightsLoading ? (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-500">
+                  <div className="rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm text-slate-500">
                     Generating insights...
                   </div>
                 ) : null}
@@ -2543,7 +2575,7 @@ export default function Records() {
                   aiInsights.map((item) => (
                     <div
                       key={`${item.title}-${item.time}`}
-                      className="rounded-2xl border border-slate-200 bg-slate-50/50 p-3"
+                      className="rounded-2xl border border-primary/10 bg-primary/5 p-3"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-medium text-slate-900">{item.title}</p>
@@ -2559,7 +2591,7 @@ export default function Records() {
                     </div>
                   ))
                 ) : !aiInsightsLoading ? (
-                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-5 text-sm text-slate-500">
+                  <div className="rounded-2xl border border-dashed border-primary/20 bg-primary/5 px-4 py-5 text-sm text-slate-500">
                     No insights available yet.
                   </div>
                 ) : null}
