@@ -1,6 +1,5 @@
 import { Allergy } from "../models/allergy.model";
 import { Immunization } from "../models/immunization.model";
-import { LabTest } from "../models/lab-test.model";
 import { MedicalRecord } from "../models/medical-record.model";
 import { Medications } from "../models/medications.model";
 import { Symptoms } from "../models/symptoms.model";
@@ -172,7 +171,6 @@ export class AnalyticsService {
       medications,
       immunizations,
       allergies,
-      labTests,
     ] = await Promise.all([
       MedicalRecord.find(
         { userId, $or: [{ deletedAt: { $exists: false } }, { deletedAt: null }] },
@@ -191,7 +189,6 @@ export class AnalyticsService {
         "vaccineName date series notes nextDue provider createdAt",
       ).lean(),
       Allergy.find({ userId }, "severity status recordedAt createdAt").lean(),
-      LabTest.find({ userId }, "testName testedDate createdAt").lean(),
     ]);
 
     const conditionMap = new Map<string, { name: string; count: number }>();
@@ -294,8 +291,6 @@ export class AnalyticsService {
     const incrementProcedure = (name: string) => {
       procedureCounts.set(name, (procedureCounts.get(name) ?? 0) + 1);
     };
-
-    labTests.forEach(() => incrementProcedure("Lab Panels"));
 
     medicalRecords.forEach((record) => {
       const text = [
@@ -412,9 +407,6 @@ export class AnalyticsService {
       ),
       ...immunizations.map((entry) =>
         pickDate(entry as Record<string, unknown>, ["date", "createdAt"]),
-      ),
-      ...labTests.map((entry) =>
-        pickDate(entry as Record<string, unknown>, ["testedDate", "createdAt"]),
       ),
     ].filter((date) => date && date >= recentCutoff).length;
 
