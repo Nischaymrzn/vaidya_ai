@@ -4,7 +4,7 @@ import Image from "next/image"
 import { clsx } from "clsx"
 import logo from "@/public/logo.svg"
 import vector from "../assets/vector.png"
-import image from "../assets/image_bg_1.png"
+import image from "../assets/image.png"
 import image2 from "../assets/image_bg_2.png"
 
 export const metadata: Metadata = {
