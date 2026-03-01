@@ -1,8 +1,6 @@
 import Link from "next/link"
 import {
-  BookOpen,
-  Clock,
-  LifeBuoy,
+  ChevronDown,
   Mail,
   Search,
   Settings,
@@ -120,17 +118,7 @@ export default function Page() {
                   className="h-11 rounded-full border-slate-200/80 bg-slate-50 pl-10 text-sm"
                 />
               </div>
-              <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
-                <span className="rounded-full border border-slate-200/70 px-3 py-1">
-                  Top: Risk analysis
-                </span>
-                <span className="rounded-full border border-slate-200/70 px-3 py-1">
-                  Health records
-                </span>
-                <span className="rounded-full border border-slate-200/70 px-3 py-1">
-                  Notifications
-                </span>
-              </div>
+
             </div>
           </section>
 
@@ -168,91 +156,28 @@ export default function Page() {
             })}
           </section>
 
-          <section className="grid gap-5 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,0.38fr)]">
-            <div className="space-y-3">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-900">Popular guides</h2>
-                <p className="text-sm text-slate-500">
-                  Short walkthroughs that cover the essentials.
-                </p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {popularGuides.map((guide) => (
-                  <Card
-                    key={guide.title}
-                    className="rounded-3xl border-slate-200/80 bg-white shadow-sm"
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <CardTitle className="text-sm font-semibold text-slate-900">
-                          {guide.title}
-                        </CardTitle>
-                        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] uppercase tracking-wide text-slate-500">
-                          {guide.tag}
-                        </span>
-                      </div>
-                      <CardDescription className="text-xs text-slate-500">
-                        {guide.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button asChild variant="ghost" className="h-8 px-0 text-xs">
-                        <Link href={guide.href}>Read guide</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
 
-            <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2 text-slate-600">
-                  <LifeBuoy className="h-4 w-4" />
-                  <CardTitle className="text-base font-semibold text-slate-900">
-                    Support hours
-                  </CardTitle>
-                </div>
-                <CardDescription className="text-xs text-slate-500">
-                  We respond quickly during business hours.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 text-sm text-slate-600">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-slate-400" />
-                  Mon - Fri, 9:00 AM to 6:00 PM
-                </div>
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-slate-400" />
-                  Typical response time: 2-4 hours
-                </div>
-                <Button asChild variant="outline" className="w-full rounded-full">
-                  <Link href="/profile/support/contact">Send a message</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </section>
 
           <section className="space-y-3">
             <div>
               <h2 className="text-xl font-semibold text-slate-900">FAQ</h2>
               <p className="text-sm text-slate-500">Quick answers to common questions.</p>
             </div>
-            <div className="grid gap-3 lg:grid-cols-3">
-              {faqs.map((item) => (
-                <Card
+            <div className="rounded-2xl border border-slate-200 bg-white">
+              {faqs.map((item, index) => (
+                <details
                   key={item.question}
-                  className="rounded-3xl border-slate-200/80 bg-white shadow-sm"
+                  open={index === 0}
+                  className="group border-b border-slate-200 last:border-b-0"
                 >
-                  <CardHeader className="pb-0">
-                    <CardTitle className="text-sm font-semibold text-slate-900">
-                      {item.question}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 text-xs text-slate-500">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
+                    <span>{item.question}</span>
+                    <ChevronDown className="h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="px-4 pb-4 pt-0.5 text-sm text-slate-600">
                     {item.answer}
-                  </CardContent>
-                </Card>
+                  </div>
+                </details>
               ))}
             </div>
           </section>
