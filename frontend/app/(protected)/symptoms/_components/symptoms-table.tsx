@@ -1,10 +1,10 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import type { TSymptoms } from "@/lib/definition";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -62,16 +62,21 @@ type SymptomsTableProps = {
   onDelete: (id: string) => void;
 };
 
-const getSeverityColor = (severity?: string) => {
+const formatStatus = (status?: string) => {
+  if (!status) return "Unknown";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const getSeverityTone = (severity?: string) => {
   switch (severity) {
     case "Severe":
-      return "bg-rose-50 text-rose-700 border-rose-200";
+      return "bg-rose-50 text-rose-700";
     case "Moderate":
-      return "bg-amber-50 text-amber-700 border-amber-200";
+      return "bg-amber-50 text-amber-700";
     case "Mild":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      return "bg-emerald-50 text-emerald-700";
     default:
-      return "bg-slate-50 text-slate-600 border-slate-200";
+      return "bg-slate-100 text-slate-600";
   }
 };
 
@@ -87,90 +92,104 @@ export function SymptomsTable({
   onEdit,
   onDelete,
 }: SymptomsTableProps) {
+  const pageSize = 6;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(filteredSymptoms.length / pageSize));
+  const paginatedSymptoms = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredSymptoms.slice(start, start + pageSize);
+  }, [filteredSymptoms, page]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, severityFilter, filteredSymptoms.length]);
+
   return (
-    <Card className="rounded-2xl border-slate-200/80 bg-white shadow-sm">
-      <CardHeader className="space-y-0.5 pb-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+    <Card className="w-full rounded-3xl border-slate-200/80 bg-white shadow-sm">
+      <CardHeader className="space-y-1.5 border-b border-slate-200/80 pb-2">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <CardTitle className="text-base font-semibold text-slate-900">
-              Symptom History
+              Symptom history
             </CardTitle>
             <CardDescription className="mt-0.5 text-sm text-slate-500">
-              {filteredSymptoms.length} of {symptoms.length} symptoms
+              {filteredSymptoms.length} of {symptoms.length} records
             </CardDescription>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5">
-              <Search className="h-4 w-4 text-slate-400" />
-              <Input
-                className="h-6 w-32 border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0 sm:w-48"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => onSearchTermChange(e.target.value)}
-              />
-            </div>
-            <Select value={severityFilter} onValueChange={onSeverityFilterChange}>
-              <SelectTrigger className="h-9 w-32 rounded-full">
-                <Filter className="mr-1 h-3.5 w-3.5" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Severity</SelectItem>
-                {severityOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-1 items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50 px-3 py-1">
+            <Search className="h-4 w-4 text-slate-400" />
+            <Input
+              className="h-6 w-full border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
+              placeholder="Search by symptom or note..."
+              value={searchTerm}
+              onChange={(e) => onSearchTermChange(e.target.value)}
+            />
           </div>
+          <Select value={severityFilter} onValueChange={onSeverityFilterChange}>
+            <SelectTrigger className="h-8 w-36 rounded-full border-slate-200/80 bg-slate-50">
+              <Filter className="mr-1 h-3.5 w-3.5 text-slate-400" />
+              <SelectValue placeholder="Severity" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All severity</SelectItem>
+              {severityOptions.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-2">
         {loading ? (
-          <div className="flex h-64 items-center justify-center text-sm text-slate-500">
+          <div className="flex h-56 items-center justify-center text-sm text-slate-500">
             Loading symptoms...
           </div>
         ) : filteredSymptoms.length > 0 ? (
           <>
             <div className="hidden overflow-hidden rounded-2xl border border-slate-200 md:block">
-              <Table>
+              <Table className="table-fixed">
                 <TableHeader>
-                  <TableRow className="border-b border-slate-200 bg-slate-50/50">
-                    <TableHead className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                  <TableRow className="border-b border-slate-200 bg-slate-50">
+                    <TableHead className="w-[40%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       Symptoms
                     </TableHead>
-                    <TableHead className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       Severity
                     </TableHead>
-                    <TableHead className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      Status
+                    </TableHead>
+                    <TableHead className="w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       Duration
                     </TableHead>
-                    <TableHead className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[14%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       Logged
                     </TableHead>
-                    <TableHead className="text-right text-xs font-medium uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[10%] text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       Actions
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredSymptoms.map((symptom) => (
+                  {paginatedSymptoms.map((symptom) => (
                     <TableRow
                       key={symptom._id}
                       className="border-b border-slate-200 hover:bg-slate-50/50"
                     >
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1.5">
-                          {symptom.symptomList?.map((s, i) => (
-                            <Badge
-                              key={`${s}-${i}`}
-                              className="bg-[#1F7AE0]/10 text-[#1F7AE0]"
-                            >
-                              {s}
-                            </Badge>
-                          ))}
-                        </div>
+                      <TableCell className="whitespace-normal text-sm text-slate-700">
+                        {symptom.symptomList?.length
+                          ? symptom.symptomList.join(", ")
+                          : "-"}
                         {symptom.notes && (
                           <p className="mt-1.5 text-xs text-slate-500">
                             {symptom.notes.length > 60
@@ -179,14 +198,19 @@ export function SymptomsTable({
                           </p>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-sm text-slate-600">
                         {symptom.severity ? (
-                          <Badge variant="outline" className={getSeverityColor(symptom.severity)}>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getSeverityTone(symptom.severity)}`}
+                          >
                             {symptom.severity}
-                          </Badge>
+                          </span>
                         ) : (
-                          <span className="text-sm text-slate-400">-</span>
+                          "-"
                         )}
+                      </TableCell>
+                      <TableCell className="text-sm text-slate-600">
+                        {symptom.status ? formatStatus(symptom.status) : "-"}
                       </TableCell>
                       <TableCell className="text-sm text-slate-600">
                         {symptom.durationDays ? `${symptom.durationDays} days` : "-"}
@@ -249,32 +273,37 @@ export function SymptomsTable({
             </div>
 
             <div className="space-y-3 md:hidden">
-              {filteredSymptoms.map((symptom) => (
+              {paginatedSymptoms.map((symptom) => (
                 <div
                   key={symptom._id}
-                  className="rounded-2xl border border-slate-200 bg-white p-4"
+                  className="rounded-2xl border border-slate-200 bg-white p-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <div className="flex flex-wrap gap-1.5">
-                        {symptom.symptomList?.map((s, i) => (
-                          <Badge key={`${s}-${i}`} className="bg-[#1F7AE0]/10 text-[#1F7AE0]">
-                            {s}
-                          </Badge>
-                        ))}
-                      </div>
-                      {symptom.severity && (
-                        <Badge
-                          variant="outline"
-                          className={`mt-2 ${getSeverityColor(symptom.severity)}`}
-                        >
-                          {symptom.severity}
-                        </Badge>
-                      )}
+                      <p className="text-sm font-medium text-slate-900">
+                        {symptom.symptomList?.length
+                          ? symptom.symptomList.join(", ")
+                          : "-"}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Severity:{" "}
+                        {symptom.severity ? (
+                          <span
+                            className={`ml-1 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${getSeverityTone(symptom.severity)}`}
+                          >
+                            {symptom.severity}
+                          </span>
+                        ) : (
+                          "-"
+                        )}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Status: {symptom.status ? formatStatus(symptom.status) : "-"}
+                      </p>
                       {symptom.notes && (
                         <p className="mt-2 text-sm text-slate-600">{symptom.notes}</p>
                       )}
-                      <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
+                      <div className="mt-2.5 flex items-center gap-3 text-xs text-slate-500">
                         {symptom.durationDays && (
                           <span className="flex items-center gap-1">
                             <Clock className="h-3.5 w-3.5" />
@@ -334,10 +363,38 @@ export function SymptomsTable({
                 </div>
               ))}
             </div>
+
+            {totalPages > 1 ? (
+              <div className="mt-2 flex items-center justify-between border-t border-slate-200/70 pt-2 text-xs text-slate-500">
+                <span>
+                  Page {page} of {totalPages}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 rounded-full border-slate-200 px-3 text-slate-600"
+                    disabled={page === 1}
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  >
+                    Prev
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 rounded-full border-slate-200 px-3 text-slate-600"
+                    disabled={page === totalPages}
+                    onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </>
         ) : (
-          <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
-            <Activity className="h-12 w-12 text-slate-300" />
+          <div className="flex h-56 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50">
+            <Activity className="h-11 w-11 text-slate-300" />
             <p className="mt-3 text-base font-medium text-slate-900">
               No symptoms logged yet
             </p>

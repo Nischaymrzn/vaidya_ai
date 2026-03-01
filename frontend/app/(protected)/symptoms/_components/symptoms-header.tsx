@@ -18,6 +18,7 @@ type SymptomsHeaderProps = {
   onCreate: (payload: SymptomPayload) => void;
   isPending: boolean;
   severityOptions: string[];
+  statusOptions: string[];
 };
 
 export function SymptomsHeader({
@@ -26,22 +27,23 @@ export function SymptomsHeader({
   onCreate,
   isPending,
   severityOptions,
+  statusOptions,
 }: SymptomsHeaderProps) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
           Symptom Tracker
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Log symptoms, identify patterns, and get AI-powered health insights
+        <p className="mt-0.5 text-sm text-slate-500">
+          Log symptoms, spot patterns, and keep your care timeline current.
         </p>
       </div>
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="rounded-full bg-[#1F7AE0]">
+          <Button className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
             <Plus className="h-4 w-4" />
-            Log Symptom
+            Log symptom
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-xl">
@@ -57,6 +59,7 @@ export function SymptomsHeader({
             submitLabel="Save Symptom"
             busy={isPending}
             severityOptions={severityOptions}
+            statusOptions={statusOptions}
           />
         </DialogContent>
       </Dialog>
