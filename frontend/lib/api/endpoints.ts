@@ -27,6 +27,10 @@ export const API = {
     UPDATE: (id: string) => `/users/${id}`,
     DELETE: (id: string) => `/users/${id}`,
   },
+  USER_DATA: {
+    GET: "/user-data",
+    UPDATE: "/user-data",
+  },
   MEDICAL_RECORDS: {
     LIST: (params?: { page?: number; limit?: number }) =>
       params
@@ -66,13 +70,6 @@ export const API = {
     UPDATE: (id: string) => `/medications/${id}`,
     DELETE: (id: string) => `/medications/${id}`,
   },
-  LAB_TESTS: {
-    LIST: "/lab-tests",
-    GET: (id: string) => `/lab-tests/${id}`,
-    CREATE: "/lab-tests",
-    UPDATE: (id: string) => `/lab-tests/${id}`,
-    DELETE: (id: string) => `/lab-tests/${id}`,
-  },
   IMMUNIZATIONS: {
     LIST: "/immunizations",
     GET: (id: string) => `/immunizations/${id}`,
@@ -110,5 +107,20 @@ export const API = {
   },
   DASHBOARD: {
     SUMMARY: "/dashboard/summary",
+  },
+  FAMILY: {
+    GROUP: "/family-groups",
+    MY_GROUP: "/family-groups/me",
+    SUMMARY: "/family-groups/me/summary",
+    INVITE: (groupId: string) => `/family-groups/${groupId}/invitations`,
+    ADD_MEMBER: (groupId: string) => `/family-groups/${groupId}/members`,
+    UPDATE_MEMBER: (groupId: string, memberId: string) =>
+      `/family-groups/${groupId}/members/${memberId}`,
+    JOIN: (token: string) => `/family-groups/join/${token}`,
+  },
+  PREDICTION: {
+    SYMPTOM: "/predict/symptom",
+    HEART_DISEASE: "/predict/heart-disease",
+    TUBERCULOSIS: "/predict/tuberculosis",
   },
 };
