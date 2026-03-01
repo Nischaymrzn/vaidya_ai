@@ -79,7 +79,7 @@ export function DashboardClient({
                 score={typeof vaidyaScore === "number" ? vaidyaScore : undefined}
                 trend={healthScoreTrend}
               />
-              <InsightsCard insights={insights} />
+              <InsightsCard insights={insights} symptoms={symptomData} vitals={vitalStats} />
               <TimelineCard items={timelineItems} />
               <AiAssistantCard />
             </div>
