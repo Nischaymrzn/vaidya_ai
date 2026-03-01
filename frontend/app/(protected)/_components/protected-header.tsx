@@ -1,22 +1,20 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { logout } from "@/lib/actions/auth-action";
 import { toast } from "sonner";
 import { TUser } from "@/lib/definition";
-import { cn } from "@/lib/utils";
+import logo from "@/public/logo.svg";
 
 interface ProtectedHeaderProps {
   user: TUser;
 }
 
 export function ProtectedHeader({ user }: ProtectedHeaderProps) {
-  const pathname = usePathname();
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -32,8 +30,15 @@ export function ProtectedHeader({ user }: ProtectedHeaderProps) {
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/dashboard" prefetch={false} className="text-xl font-bold text-foreground">
-              Vaidya
+            <Link
+              href="/dashboard"
+              prefetch={false}
+              className="flex items-center gap-2 text-xl font-bold text-foreground"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-200">
+                <Image src={logo} alt="Vaidya logo" width={20} height={20} />
+              </span>
+              <span>Vaidya.ai</span>
             </Link>
           </div>
 
