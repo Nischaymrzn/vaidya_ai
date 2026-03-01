@@ -27,12 +27,12 @@ export function SymptomsChartCard({
   heightClassName = "h-44",
 }: SymptomsChartCardProps) {
   return (
-    <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+    <Card className="rounded-3xl border border-border bg-card shadow-sm">
       <CardHeader className="space-y-0.5 pb-2">
-        <CardTitle className="text-base font-semibold text-slate-900">
+        <CardTitle className="text-base font-semibold text-foreground">
           {title}
         </CardTitle>
-        <CardDescription className="mt-0.5 text-sm text-slate-500">
+        <CardDescription className="mt-0.5 text-sm text-muted-foreground">
           {description}
         </CardDescription>
       </CardHeader>
@@ -55,19 +55,19 @@ export function SymptomsChartCard({
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="#e2e8f0"
+                stroke="hsl(var(--border))"
                 strokeOpacity={0.5}
               />
               <XAxis
                 dataKey="name"
-                tick={{ fill: "#64748b", fontSize: 12 }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 axisLine={false}
                 tickLine={false}
                 interval={0}
                 tickMargin={8}
               />
               <YAxis
-                tick={{ fill: "#64748b", fontSize: 12 }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
@@ -80,7 +80,7 @@ export function SymptomsChartCard({
             </BarChart>
           </ChartContainer>
         ) : (
-          <div className="flex h-44 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+          <div className="flex h-44 items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground">
             {emptyMessage}
           </div>
         )}
