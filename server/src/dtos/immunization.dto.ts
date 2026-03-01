@@ -3,8 +3,6 @@ import { ImmunizationSchema } from "../types/immunization.types";
 
 export const CreateImmunizationDto = ImmunizationSchema.omit({
   userId: true,
-}).extend({
-  recordId: z.string().optional(),
 });
 
 export type CreateImmunizationDto = z.infer<typeof CreateImmunizationDto>;

@@ -1,9 +1,7 @@
 import z from "zod";
 import { AllergySchema } from "../types/allergy.types";
 
-export const CreateAllergyDto = AllergySchema.omit({ userId: true }).extend({
-  recordId: z.string().optional(),
-});
+export const CreateAllergyDto = AllergySchema.omit({ userId: true });
 
 export type CreateAllergyDto = z.infer<typeof CreateAllergyDto>;
 

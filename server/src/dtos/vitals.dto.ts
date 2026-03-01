@@ -1,9 +1,7 @@
 import z from "zod";
 import { VitalsSchema } from "../types/vitals.types";
 
-export const CreateVitalsDto = VitalsSchema.omit({ userId: true }).extend({
-  recordId: z.string().optional(),
-});
+export const CreateVitalsDto = VitalsSchema.omit({ userId: true });
 
 export type CreateVitalsDto = z.infer<typeof CreateVitalsDto>;
 

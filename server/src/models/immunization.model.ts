@@ -1,8 +1,9 @@
 import mongoose, { HydratedDocument } from "mongoose";
 import { ImmunizationType } from "../types/immunization.types";
 
-export type ImmunizationDb = Omit<ImmunizationType, "userId"> & {
+export type ImmunizationDb = Omit<ImmunizationType, "userId" | "recordId"> & {
   userId: mongoose.Types.ObjectId;
+  recordId?: mongoose.Types.ObjectId;
   _id?: mongoose.Types.ObjectId;
 };
 
@@ -12,6 +13,11 @@ const immunizationSchema = new mongoose.Schema<ImmunizationDb>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
+    },
+    recordId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MedicalRecord",
       index: true,
     },
     vaccineName: {

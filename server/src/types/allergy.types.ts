@@ -2,6 +2,7 @@ import z from "zod";
 
 export const AllergySchema = z.object({
   userId: z.string(),
+  recordId: z.string().optional(),
   allergen: z.string().min(1),
   type: z
     .enum(["food", "drug", "environmental", "other"])

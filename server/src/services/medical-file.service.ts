@@ -24,6 +24,7 @@ export class MedicalFileService {
     const medicalFile = await medicalFileRepository.create({
       ...payload,
       userId,
+      ...(recordId ? { recordId } : {}),
     });
     if (!medicalFile) throw new ApiError(500, "Failed to create medical file");
 
@@ -61,7 +62,10 @@ export class MedicalFileService {
     if (!existing) throw new ApiError(404, "Medical file not found");
 
     const { recordId, ...payload } = data;
-    const updated = await medicalFileRepository.update(fileId, userId, payload);
+    const updated = await medicalFileRepository.update(fileId, userId, {
+      ...payload,
+      ...(recordId ? { recordId } : {}),
+    });
     if (!updated) throw new ApiError(500, "Failed to update medical file");
 
     if (recordId) {

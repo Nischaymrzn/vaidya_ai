@@ -2,6 +2,7 @@ import z from "zod";
 
 export const VitalsSchema = z.object({
   userId: z.string(),
+  recordId: z.string().optional(),
   systolicBp: z.coerce.number().int().nonnegative().optional(),
   diastolicBp: z.coerce.number().int().nonnegative().optional(),
   glucoseLevel: z.coerce.number().nonnegative().optional(),

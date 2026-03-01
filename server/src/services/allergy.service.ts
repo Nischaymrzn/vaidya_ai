@@ -14,7 +14,11 @@ const notificationService = new NotificationService();
 export class AllergyService {
   async createAllergy(userId: string, data: CreateAllergyPayload) {
     const { recordId, ...payload } = data;
-    const allergy = await allergyRepository.create({ ...payload, userId });
+    const allergy = await allergyRepository.create({
+      ...payload,
+      userId,
+      ...(recordId ? { recordId } : {}),
+    });
     if (!allergy) throw new ApiError(500, "Failed to create allergy");
 
     if (recordId) {
@@ -62,7 +66,10 @@ export class AllergyService {
     if (!existing) throw new ApiError(404, "Allergy not found");
 
     const { recordId, ...payload } = data;
-    const updated = await allergyRepository.update(allergyId, userId, payload);
+    const updated = await allergyRepository.update(allergyId, userId, {
+      ...payload,
+      ...(recordId ? { recordId } : {}),
+    });
     if (!updated) throw new ApiError(500, "Failed to update allergy");
 
     if (recordId) {
