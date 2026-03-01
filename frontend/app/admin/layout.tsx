@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import { Role } from "@/lib/definition";
-import { AdminHeader } from "./_components/admin-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AdminNavbar } from "./_components/admin-navbar";
+import { AdminSidebar } from "./_components/admin-sidebar";
 
 export default async function AdminLayout({
   children,
@@ -19,9 +21,12 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AdminHeader user={user} />
-      <main className="container mx-auto px-4 py-8 max-w-6xl">{children}</main>
-    </div>
+    <SidebarProvider>
+      <AdminSidebar />
+      <SidebarInset>
+        <AdminNavbar user={user} />
+        <main className="w-full px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
