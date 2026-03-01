@@ -28,11 +28,11 @@ export default function AiDoctorsPage() {
   }, [searchQuery])
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-background">
       <div className="w-full px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div className="space-y-6">
 
-          <Card className="overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-primary via-primary/90 to-primary text-white shadow-sm">
+          <Card className="overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-primary via-primary/90 to-primary text-white shadow-sm dark:border-border dark:bg-[linear-gradient(135deg,oklch(0.21_0_0)_0%,oklch(0.18_0_0)_100%)]">
             <CardContent className="p-0">
               <div className="grid gap-4 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                 <div className="space-y-2">
@@ -47,20 +47,20 @@ export default function AiDoctorsPage() {
                 <div className="flex flex-wrap items-center gap-3 lg:justify-end">
                   <Button
                     asChild
-                    className="h-10 rounded-full bg-white text-primary shadow-sm hover:bg-white/90"
+                    className="h-10 rounded-full bg-white text-primary shadow-sm hover:bg-white/90 dark:bg-foreground dark:text-background dark:hover:bg-foreground/90"
                   >
                     <Link href="/ai-assistant">Open Vaidya.ai</Link>
                   </Button>
                 </div>
               </div>
               <div className="px-6 pb-6">
-                <div className="flex flex-col gap-3 rounded-2xl bg-white/95 p-2 shadow-sm backdrop-blur sm:flex-row sm:items-center">
+                <div className="flex flex-col gap-3 rounded-2xl bg-white/95 p-2 shadow-sm backdrop-blur sm:flex-row sm:items-center dark:bg-muted/40">
                   <div className="flex flex-1 items-center gap-2 rounded-xl px-3 py-2">
-                    <Search className="h-4 w-4 text-slate-400" />
+                    <Search className="h-4 w-4 text-muted-foreground" />
                     <Input
                       value={searchQuery}
                       onChange={(event) => setSearchQuery(event.target.value)}
-                      className="h-7 border-0 p-0 text-sm text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-0"
+                      className="h-7 border-0 p-0 text-sm text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
                       placeholder="Search a doctor or specialty..."
                     />
                   </div>
@@ -75,10 +75,10 @@ export default function AiDoctorsPage() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredDoctors.map((doctor) => {
               return (
-                <Card key={doctor.id} className="rounded-2xl border-slate-200/80 bg-white shadow-sm">
+                <Card key={doctor.id} className="rounded-2xl border border-border bg-card shadow-sm">
                   <CardContent className="space-y-4 px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-12 w-12 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                      <div className="relative h-12 w-12 overflow-hidden rounded-xl border border-border bg-muted/50">
                         <Image
                           src={doctor.image}
                           alt={doctor.name}
@@ -88,19 +88,19 @@ export default function AiDoctorsPage() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <CardTitle className="text-base font-semibold text-slate-900">
+                        <CardTitle className="text-base font-semibold text-foreground">
                           {doctor.name}
                         </CardTitle>
-                        <CardDescription className="text-sm text-slate-500">
+                        <CardDescription className="text-sm text-muted-foreground">
                           {doctor.title}
                         </CardDescription>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-sm text-slate-700">
+                    <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                       {doctor.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="inline-flex items-center bg-gray-100 px-3 py-1 text-xs font-medium text-slate-900"
+                          className="inline-flex items-center rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground"
                         >
                           {tag}
                         </span>
@@ -123,8 +123,8 @@ export default function AiDoctorsPage() {
           </div>
 
           {filteredDoctors.length === 0 && (
-            <Card className="rounded-2xl border-dashed border-slate-200 bg-white">
-              <CardContent className="py-10 text-center text-sm text-slate-500">
+            <Card className="rounded-2xl border border-dashed border-border bg-card">
+              <CardContent className="py-10 text-center text-sm text-muted-foreground">
                 No doctors found. Try a different search.
               </CardContent>
             </Card>
