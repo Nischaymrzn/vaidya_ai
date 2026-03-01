@@ -18,7 +18,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -195,9 +194,8 @@ function HeartValueTag({
 }) {
   return (
     <div
-      className={`absolute min-w-[140px] rounded-xl bg-white/95 px-4 py-2.5 text-xs shadow-sm ring-1 ring-slate-200/70 backdrop-blur ${
-        side === "right" ? "text-right" : ""
-      } ${className ?? ""}`}
+      className={`absolute min-w-[140px] rounded-xl bg-white/95 px-4 py-2.5 text-xs shadow-sm ring-1 ring-slate-200/70 backdrop-blur ${side === "right" ? "text-right" : ""
+        } ${className ?? ""}`}
     >
       <p className="text-[11px] font-medium text-slate-500">{label}</p>
       <p className="text-base font-semibold text-slate-900">
@@ -554,20 +552,39 @@ export function VitalsClient({ summary, error }: VitalsClientProps) {
     [bpCard, heartCard, glucoseCard, bloodCountValue],
   );
 
+  const heartStats = useMemo(() => {
+    const values = trend
+      .map((point) => point.heartRate)
+      .filter((value): value is number => typeof value === "number");
+    if (!values.length) {
+      return { avg: "--", min: "--", max: "--" };
+    }
+    const avg = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+    return {
+      avg: avg.toString(),
+      min: Math.min(...values).toString(),
+      max: Math.max(...values).toString(),
+    };
+  }, [trend]);
+
   return (
     <div className="min-h-screen bg-slate-50/50">
       <div className="w-full px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Vitals</h1>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+                Vitals overview
+              </h1>
               <p className="text-sm text-slate-500">
-                Track your vitals over time with clear trends and fast logging.
+                Balance, strength, vitality, wellness. Review your core signals at a glance.
               </p>
             </div>
             <Dialog>
               <DialogTrigger asChild>
-                <Button className="rounded-full">Add reading</Button>
+                <Button className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+                  Add reading
+                </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -592,15 +609,46 @@ export function VitalsClient({ summary, error }: VitalsClientProps) {
           ) : null}
 
 
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-            <Card className="rounded-2xl border-slate-200/80 bg-white shadow-sm">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-start">
+            <div className="space-y-5">
+              <div className="grid gap-3.5 sm:grid-cols-3">
+                {trendStats.map((stat) => (
+                  <Card
+                    key={stat.label}
+                    className="rounded-2xl border-slate-200/80 bg-white shadow-sm ring-1 ring-primary/10"
+                  >
+                    <CardContent className="px-3 py-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[14px] font-semibold uppercase tracking-wider text-slate-500">
+                          {stat.label}
+                        </p>
+                        <span className="h-2 w-6 rounded-full bg-primary/80" />
+                      </div>
+                      <p className="mt-1 text-xl font-semibold text-slate-900">{stat.value}</p>
+                      <p className="text-[12px] font-medium text-primary/80">{stat.note}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <VitalsTrendCard data={trend} stats={trendStats} />
+            </div>
+
+            <Card className="rounded-3xl border-primary/20 bg-gradient-to-br from-primary/5 via-white to-white shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold text-slate-900">Cardiac Mapping</CardTitle>
-                <CardDescription className="text-sm text-slate-500">
-                  A quick visual of your latest readings.
-                </CardDescription>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <CardTitle className="text-base font-semibold text-slate-900">Your Heart Statistic</CardTitle>
+                    <CardDescription className="text-sm text-slate-500">
+                      Snapshot of your latest heart-related vitals.
+                    </CardDescription>
+                  </div>
+                  <Button size="icon" variant="ghost" className="rounded-full">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="space-y-4 pt-0">
                 <div className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white via-slate-50 to-blue-50/40 px-3 py-3 sm:px-4">
                   <div className="relative mx-auto h-52 w-full max-w-[520px] sm:h-64">
                     <img
@@ -636,13 +684,30 @@ export function VitalsClient({ summary, error }: VitalsClientProps) {
                     />
                   </div>
                 </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: "Average", value: heartStats.avg },
+                    { label: "Minimum", value: heartStats.min },
+                    { label: "Maximum", value: heartStats.max },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-2xl border border-slate-200/70 bg-slate-50/60 px-3 py-2"
+                    >
+                      <p className="text-xs font-semibold text-slate-500">{item.label}</p>
+                      <p className="mt-1 text-lg font-semibold text-slate-900">
+                        {item.value}
+                        <span className="ml-1 text-xs font-medium text-slate-500">bpm</span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
-
-            <VitalsTrendCard data={trend} stats={trendStats} />
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,0.3fr)]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-start">
             <div className="h-full">
               <Card className="h-full rounded-2xl border-slate-200/80 bg-white shadow-sm">
                 <CardHeader className="pb-3">
@@ -674,287 +739,287 @@ export function VitalsClient({ summary, error }: VitalsClientProps) {
                   </div>
                 </CardHeader>
                 <CardContent className="flex h-full flex-col gap-3">
-              {records.length ? (
-                <div className="flex-1">
-                  <div className="hidden md:block">
-                    <div className="rounded-2xl border border-slate-200/70">
-                      <Table className="table-fixed">
-                        <TableHeader>
-                          <TableRow className="border-b border-slate-200 bg-slate-50/50">
-                            <TableHead className="w-[110px] text-xs font-medium uppercase tracking-wider text-slate-500">
-                              Date
-                            </TableHead>
-                            <TableHead className="w-[70px] text-xs font-medium uppercase tracking-wider text-slate-500">
-                              Heart
-                            </TableHead>
-                            <TableHead className="w-[110px] text-xs font-medium uppercase tracking-wider text-slate-500">
-                              BP
-                            </TableHead>
-                            <TableHead className="w-[110px] text-xs font-medium uppercase tracking-wider text-slate-500">
-                              Glucose
-                            </TableHead>
-                            <TableHead className="w-[90px] text-xs font-medium uppercase tracking-wider text-slate-500">
-                              Weight
-                            </TableHead>
-                            <TableHead className="w-[80px] text-xs font-medium uppercase tracking-wider text-slate-500">
-                              BMI
-                            </TableHead>
-                            <TableHead className="w-[90px] text-right text-xs font-medium uppercase tracking-wider text-slate-500">
-                              Actions
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {paginatedRecords.map((record) => (
-                            <TableRow key={record._id} className="border-b border-slate-200 hover:bg-slate-50/50">
-                              <TableCell className="text-sm text-slate-600">
-                                {record.recordedAt || record.createdAt
-                                  ? new Date(record.recordedAt ?? record.createdAt ?? "").toLocaleDateString(
-                                      "en-US",
-                                      {
-                                        month: "short",
-                                        day: "numeric",
-                                      },
-                                    )
-                                  : "--"}
-                              </TableCell>
-                              <TableCell className="text-sm text-slate-900">
-                                {record.heartRate ?? "--"}
-                              </TableCell>
-                              <TableCell className="text-sm text-slate-900">
-                                {record.systolicBp ?? "--"}/{record.diastolicBp ?? "--"}
-                              </TableCell>
-                              <TableCell className="text-sm text-slate-900">
-                                {record.glucoseLevel ?? "--"}
-                              </TableCell>
-                              <TableCell className="text-sm text-slate-900">
-                                {record.weight ?? "--"}
-                              </TableCell>
-                              <TableCell className="text-sm text-slate-900">
-                                {record.bmi ?? "--"}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      className="h-8 w-8 text-slate-500"
-                                    >
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <Dialog>
-                                      <DialogTrigger asChild>
-                                        <DropdownMenuItem>View</DropdownMenuItem>
-                                      </DialogTrigger>
-                                      <DialogContent>
-                                        <DialogHeader>
-                                          <DialogTitle>Vitals details</DialogTitle>
-                                        </DialogHeader>
-                                        <div className="grid gap-2 text-sm text-slate-700">
-                                          <div>Heart Rate: {record.heartRate ?? "--"} bpm</div>
-                                          <div>
-                                            Blood Pressure: {record.systolicBp ?? "--"}/{record.diastolicBp ?? "--"} mmHg
-                                          </div>
-                                          <div>Glucose: {record.glucoseLevel ?? "--"} mg/dL</div>
-                                          <div>Weight: {record.weight ?? "--"} kg</div>
-                                          <div>BMI: {record.bmi ?? "--"}</div>
-                                          <div>Notes: {record.notes ?? "--"}</div>
-                                        </div>
-                                      </DialogContent>
-                                    </Dialog>
+                  {records.length ? (
+                    <div className="flex-1">
+                      <div className="hidden md:block">
+                        <div className="rounded-2xl border border-slate-200/70">
+                          <Table className="table-fixed">
+                            <TableHeader>
+                              <TableRow className="border-b border-slate-200 bg-slate-50/50">
+                                <TableHead className="w-[110px] text-xs font-medium uppercase tracking-wider text-slate-500">
+                                  Date
+                                </TableHead>
+                                <TableHead className="w-[70px] text-xs font-medium uppercase tracking-wider text-slate-500">
+                                  Heart
+                                </TableHead>
+                                <TableHead className="w-[110px] text-xs font-medium uppercase tracking-wider text-slate-500">
+                                  BP
+                                </TableHead>
+                                <TableHead className="w-[110px] text-xs font-medium uppercase tracking-wider text-slate-500">
+                                  Glucose
+                                </TableHead>
+                                <TableHead className="w-[90px] text-xs font-medium uppercase tracking-wider text-slate-500">
+                                  Weight
+                                </TableHead>
+                                <TableHead className="w-[80px] text-xs font-medium uppercase tracking-wider text-slate-500">
+                                  BMI
+                                </TableHead>
+                                <TableHead className="w-[90px] text-right text-xs font-medium uppercase tracking-wider text-slate-500">
+                                  Actions
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {paginatedRecords.map((record) => (
+                                <TableRow key={record._id} className="border-b border-slate-200 hover:bg-slate-50/50">
+                                  <TableCell className="text-sm text-slate-600">
+                                    {record.recordedAt || record.createdAt
+                                      ? new Date(record.recordedAt ?? record.createdAt ?? "").toLocaleDateString(
+                                        "en-US",
+                                        {
+                                          month: "short",
+                                          day: "numeric",
+                                        },
+                                      )
+                                      : "--"}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-slate-900">
+                                    {record.heartRate ?? "--"}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-slate-900">
+                                    {record.systolicBp ?? "--"}/{record.diastolicBp ?? "--"}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-slate-900">
+                                    {record.glucoseLevel ?? "--"}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-slate-900">
+                                    {record.weight ?? "--"}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-slate-900">
+                                    {record.bmi ?? "--"}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-8 w-8 text-slate-500"
+                                        >
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <Dialog>
+                                          <DialogTrigger asChild>
+                                            <DropdownMenuItem>View</DropdownMenuItem>
+                                          </DialogTrigger>
+                                          <DialogContent>
+                                            <DialogHeader>
+                                              <DialogTitle>Vitals details</DialogTitle>
+                                            </DialogHeader>
+                                            <div className="grid gap-2 text-sm text-slate-700">
+                                              <div>Heart Rate: {record.heartRate ?? "--"} bpm</div>
+                                              <div>
+                                                Blood Pressure: {record.systolicBp ?? "--"}/{record.diastolicBp ?? "--"} mmHg
+                                              </div>
+                                              <div>Glucose: {record.glucoseLevel ?? "--"} mg/dL</div>
+                                              <div>Weight: {record.weight ?? "--"} kg</div>
+                                              <div>BMI: {record.bmi ?? "--"}</div>
+                                              <div>Notes: {record.notes ?? "--"}</div>
+                                            </div>
+                                          </DialogContent>
+                                        </Dialog>
 
-                                    <Dialog>
-                                      <DialogTrigger asChild>
-                                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                                      </DialogTrigger>
-                                      <DialogContent>
-                                        <DialogHeader>
-                                          <DialogTitle>Edit vitals entry</DialogTitle>
-                                        </DialogHeader>
-                                        <VitalsForm
-                                          key={record._id ?? "edit"}
-                                          initial={record}
-                                          onSubmit={(payload) => {
-                                            if (record._id) handleUpdate(record._id, payload);
-                                          }}
-                                          submitLabel="Save changes"
-                                          busy={isPending}
-                                        />
-                                      </DialogContent>
-                                    </Dialog>
+                                        <Dialog>
+                                          <DialogTrigger asChild>
+                                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                                          </DialogTrigger>
+                                          <DialogContent>
+                                            <DialogHeader>
+                                              <DialogTitle>Edit vitals entry</DialogTitle>
+                                            </DialogHeader>
+                                            <VitalsForm
+                                              key={record._id ?? "edit"}
+                                              initial={record}
+                                              onSubmit={(payload) => {
+                                                if (record._id) handleUpdate(record._id, payload);
+                                              }}
+                                              submitLabel="Save changes"
+                                              busy={isPending}
+                                            />
+                                          </DialogContent>
+                                        </Dialog>
 
-                                    <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem className="text-rose-600">
-                                          Delete
-                                        </DropdownMenuItem>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                            This will remove the vitals reading permanently.
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                          <AlertDialogAction
-                                            className="bg-rose-600 hover:bg-rose-700"
-                                            onClick={() => record._id && handleDelete(record._id)}
-                                          >
-                                            Delete
-                                          </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-3 md:hidden">
-                    {paginatedRecords.map((record) => (
-                      <div key={record._id} className="rounded-2xl border border-slate-200/70 p-3">
-                        <div className="flex items-center justify-between text-xs text-slate-500">
-                          <span>
-                            {record.recordedAt || record.createdAt
-                              ? new Date(record.recordedAt ?? record.createdAt ?? "").toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    month: "short",
-                                    day: "numeric",
-                                  },
-                                )
-                              : "--"}
-                          </span>
-                          <span>
-                            {record.systolicBp ?? "--"}/{record.diastolicBp ?? "--"} mmHg
-                          </span>
-                        </div>
-                        <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-slate-700">
-                          <div>HR: {record.heartRate ?? "--"} bpm</div>
-                          <div>Glucose: {record.glucoseLevel ?? "--"} mg/dL</div>
-                          <div>Weight: {record.weight ?? "--"} kg</div>
-                          <div>BMI: {record.bmi ?? "--"}</div>
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button size="sm" variant="outline">
-                                Actions
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <DropdownMenuItem>View</DropdownMenuItem>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Vitals details</DialogTitle>
-                                  </DialogHeader>
-                                  <div className="grid gap-2 text-sm text-slate-700">
-                                    <div>Heart Rate: {record.heartRate ?? "--"} bpm</div>
-                                    <div>
-                                      Blood Pressure: {record.systolicBp ?? "--"}/{record.diastolicBp ?? "--"} mmHg
-                                    </div>
-                                    <div>Glucose: {record.glucoseLevel ?? "--"} mg/dL</div>
-                                    <div>Weight: {record.weight ?? "--"} kg</div>
-                                    <div>BMI: {record.bmi ?? "--"}</div>
-                                    <div>Notes: {record.notes ?? "--"}</div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Edit vitals entry</DialogTitle>
-                                  </DialogHeader>
-                                  <VitalsForm
-                                    key={record._id ?? "edit-mobile"}
-                                    initial={record}
-                                    onSubmit={(payload) => {
-                                      if (record._id) handleUpdate(record._id, payload);
-                                    }}
-                                    submitLabel="Save changes"
-                                    busy={isPending}
-                                  />
-                                </DialogContent>
-                              </Dialog>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem className="text-rose-600">
-                                    Delete
-                                  </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This will remove the vitals reading permanently.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      className="bg-rose-600 hover:bg-rose-700"
-                                      onClick={() => record._id && handleDelete(record._id)}
-                                    >
-                                      Delete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem className="text-rose-600">
+                                              Delete
+                                            </DropdownMenuItem>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+                                              <AlertDialogDescription>
+                                                This will remove the vitals reading permanently.
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                              <AlertDialogAction
+                                                className="bg-rose-600 hover:bg-rose-700"
+                                                onClick={() => record._id && handleDelete(record._id)}
+                                              >
+                                                Delete
+                                              </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex-1 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-8 text-sm text-slate-500">
-                  No vitals recorded yet. Add your first reading to see trends.
-                </div>
-              )}
-                {totalPages > 1 ? (
-                  <div className="mt-auto flex items-center justify-between border-t border-slate-200 px-4 py-3.5 text-sm text-slate-500">
-                    <span>
-                      Page {logPage} of {totalPages}
-                    </span>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="rounded-full"
-                        disabled={logPage === 1}
-                        onClick={() => setLogPage((prev) => Math.max(1, prev - 1))}
-                      >
-                        Prev
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="rounded-full"
-                        disabled={logPage === totalPages}
-                        onClick={() => setLogPage((prev) => Math.min(totalPages, prev + 1))}
-                      >
-                        Next
-                      </Button>
+
+                      <div className="grid gap-3 md:hidden">
+                        {paginatedRecords.map((record) => (
+                          <div key={record._id} className="rounded-2xl border border-slate-200/70 p-3">
+                            <div className="flex items-center justify-between text-xs text-slate-500">
+                              <span>
+                                {record.recordedAt || record.createdAt
+                                  ? new Date(record.recordedAt ?? record.createdAt ?? "").toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      month: "short",
+                                      day: "numeric",
+                                    },
+                                  )
+                                  : "--"}
+                              </span>
+                              <span>
+                                {record.systolicBp ?? "--"}/{record.diastolicBp ?? "--"} mmHg
+                              </span>
+                            </div>
+                            <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-slate-700">
+                              <div>HR: {record.heartRate ?? "--"} bpm</div>
+                              <div>Glucose: {record.glucoseLevel ?? "--"} mg/dL</div>
+                              <div>Weight: {record.weight ?? "--"} kg</div>
+                              <div>BMI: {record.bmi ?? "--"}</div>
+                            </div>
+                            <div className="mt-3 flex gap-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button size="sm" variant="outline">
+                                    Actions
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <DropdownMenuItem>View</DropdownMenuItem>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Vitals details</DialogTitle>
+                                      </DialogHeader>
+                                      <div className="grid gap-2 text-sm text-slate-700">
+                                        <div>Heart Rate: {record.heartRate ?? "--"} bpm</div>
+                                        <div>
+                                          Blood Pressure: {record.systolicBp ?? "--"}/{record.diastolicBp ?? "--"} mmHg
+                                        </div>
+                                        <div>Glucose: {record.glucoseLevel ?? "--"} mg/dL</div>
+                                        <div>Weight: {record.weight ?? "--"} kg</div>
+                                        <div>BMI: {record.bmi ?? "--"}</div>
+                                        <div>Notes: {record.notes ?? "--"}</div>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <DropdownMenuItem>Edit</DropdownMenuItem>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Edit vitals entry</DialogTitle>
+                                      </DialogHeader>
+                                      <VitalsForm
+                                        key={record._id ?? "edit-mobile"}
+                                        initial={record}
+                                        onSubmit={(payload) => {
+                                          if (record._id) handleUpdate(record._id, payload);
+                                        }}
+                                        submitLabel="Save changes"
+                                        busy={isPending}
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <DropdownMenuItem className="text-rose-600">
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This will remove the vitals reading permanently.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          className="bg-rose-600 hover:bg-rose-700"
+                                          onClick={() => record._id && handleDelete(record._id)}
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ) : null}
+                  ) : (
+                    <div className="flex-1 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-8 text-sm text-slate-500">
+                      No vitals recorded yet. Add your first reading to see trends.
+                    </div>
+                  )}
+                  {totalPages > 1 ? (
+                    <div className="mt-auto flex items-center justify-between border-t border-slate-200 px-4 py-3.5 text-sm text-slate-500">
+                      <span>
+                        Page {logPage} of {totalPages}
+                      </span>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-full"
+                          disabled={logPage === 1}
+                          onClick={() => setLogPage((prev) => Math.max(1, prev - 1))}
+                        >
+                          Prev
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-full"
+                          disabled={logPage === totalPages}
+                          onClick={() => setLogPage((prev) => Math.min(totalPages, prev + 1))}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
             </div>
