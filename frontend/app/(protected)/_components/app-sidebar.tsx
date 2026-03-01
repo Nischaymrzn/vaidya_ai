@@ -64,9 +64,13 @@ export function AppSidebar() {
               collapsed && "flex-col px-0"
             )}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-              <Image src={logo} alt="Vaidya logo" width={24} height={24} />
-            </div>
+            <Image
+              src={logo}
+              alt="Vaidya logo"
+              width={30}
+              height={30}
+              className="shrink-0"
+            />
             <div
               className={cn(
                 "flex flex-col gap-0.5 transition-opacity",
