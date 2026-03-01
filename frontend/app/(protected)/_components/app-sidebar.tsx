@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ChevronDown, PanelLeftOpen } from "lucide-react"
@@ -21,12 +22,15 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { mainNavItems, otherNavItems } from "./nav-items"
+import logo from "@/public/logo.svg"
 
 export function AppSidebar() {
   const pathname = usePathname()
   const { state, toggleSidebar } = useSidebar()
   const collapsed = state === "collapsed"
   const shouldPrefetch = (href?: string) => href !== "/dashboard"
+  const isPathActive = (href?: string) =>
+    href ? pathname === href || pathname.startsWith(`${href}/`) : false
 
   const navItemClass = cn(
     "group gap-3 rounded-lg px-3 py-4.5 text-[15px] font-medium transition [&>svg]:h-5 [&>svg]:w-5 [&>svg]:shrink-0",
@@ -60,8 +64,8 @@ export function AppSidebar() {
               collapsed && "flex-col px-0"
             )}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-[11px] font-semibold uppercase text-primary-foreground">
-              VA
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+              <Image src={logo} alt="Vaidya logo" width={24} height={24} />
             </div>
             <div
               className={cn(
@@ -101,7 +105,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarMenu className="space-y-1">
             {(collapsed ? collapsedMainItems : mainNavItems).map((item) => {
-              const active = item.href ? pathname === item.href : false
+              const active = item.href ? isPathActive(item.href) : false
               const button = (
                 <SidebarMenuButton
                   asChild
@@ -150,7 +154,7 @@ export function AppSidebar() {
                       {item.items && (
                         <SidebarMenuSub className="relative mt-0.5 pl-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-px before:rounded-full before:bg-border">
                           {item.items.map((sub) => {
-                            const subActive = pathname === sub.href
+                            const subActive = isPathActive(sub.href)
                             return (
                               <SidebarMenuSubItem key={sub.href}>
                                 <SidebarMenuSubButton
