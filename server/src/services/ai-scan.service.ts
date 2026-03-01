@@ -52,23 +52,9 @@ const parseVitals = (text: string): StructuredResult => {
   return result;
 };
 
-const parseLab = (text: string): StructuredResult => {
-  const result: StructuredResult = {};
-  const hbA1cMatch = text.match(/hba1c\s*[:\-]?\s*([0-9.]+)/i);
-  if (hbA1cMatch) {
-    result.testName = "HbA1c";
-    result.resultValue = hbA1cMatch[1];
-    result.unit = text.includes("%") ? "%" : undefined;
-  }
-  return result;
-};
-
 const inferRecordType = (text: string): string | undefined => {
   if (text.match(/(\d{2,3})\s*[/\-]\s*(\d{2,3})\s*(?:mmhg)?/i)) {
     return "Vitals";
-  }
-  if (text.match(/hba1c|glucose|blood sugar/i)) {
-    return "Lab";
   }
   return undefined;
 };
@@ -106,15 +92,6 @@ const buildSummary = (
 
     if (parts.length) {
       return `Vitals captured: ${parts.join(", ")}`;
-    }
-  }
-
-  if (normalizedType === "lab") {
-    const testName = formatValue(data.testName);
-    const resultValue = formatValue(data.resultValue);
-    const unit = formatValue(data.unit);
-    if (testName && resultValue) {
-      return `Lab result: ${testName} ${resultValue}${unit ? ` ${unit}` : ""}`;
     }
   }
 
@@ -250,7 +227,7 @@ You are a medical data extraction system.
 Return JSON only.
 Output format:
 {
-  "recordType": "Vitals|Lab|Prescription|Diagnosis|Visit|Imaging|Allergy|Immunization",
+  "recordType": "Vitals|Prescription|Diagnosis|Visit|Imaging|Allergy|Immunization",
   "provider": "string",
   "recordDate": "YYYY-MM-DD",
   "structured": { ... }
@@ -258,9 +235,8 @@ Output format:
 
 Allowed fields by type:
 Vitals: systolicBp, diastolicBp, heartRate, glucoseLevel, weight, height, bmi, recordedAt
-Lab: testName, resultValue, unit, normalRange, testedDate
 Prescription: medicineName, dosage, frequency, durationDays, startDate, endDate, purpose, diagnosis, disease, notes
-Diagnosis/Visit: symptomList (array), severity, durationDays, notes, diagnosis, disease, loggedAt
+Diagnosis/Visit: symptomList (array), severity, status, durationDays, notes, diagnosis, disease, loggedAt
 Allergy: allergen, type, reaction, severity, status, onsetDate, recordedAt, notes
 Immunization: vaccineName, date, doseNumber, series, manufacturer, lotNumber, site, route, provider, nextDue, notes
 
@@ -349,7 +325,6 @@ export class AiScanService {
     if (!Object.keys(structured).length) {
       const fallbackType = normalizeRecordType(finalType) ?? normalizedType;
       if (fallbackType === "vitals") structured = parseVitals(normalizedText);
-      if (fallbackType === "lab") structured = parseLab(normalizedText);
     }
 
     if (!provider) {

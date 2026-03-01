@@ -75,7 +75,7 @@ export const buildFallbackInsights = (records: TMedicalRecord[]): InsightItem[] 
   if (pendingAi) {
     insights.push({
       title: "AI reviews pending",
-      detail: `${pendingAi} AI scanned records need your review.`,
+      detail: `${pendingAi} AI scanned records still need verification.`,
       level: "Medium",
       tag: "Review",
       source: "Records",
@@ -84,12 +84,17 @@ export const buildFallbackInsights = (records: TMedicalRecord[]): InsightItem[] 
     })
   }
 
-  const missingProviders = records.filter((record) => !record.provider).length
-  if (missingProviders) {
+  const missingProviders = records.filter((record) => !record.provider?.trim()).length
+  const missingDates = records.filter((record) => !record.recordDate).length
+  const incompleteCount = missingProviders + missingDates
+  if (incompleteCount) {
+    const detailParts = []
+    if (missingDates) detailParts.push(`${missingDates} missing dates`)
+    if (missingProviders) detailParts.push(`${missingProviders} missing provider info`)
     insights.push({
-      title: "Missing provider info",
-      detail: `${missingProviders} records are missing provider details.`,
-      level: "Info",
+      title: "Incomplete record details",
+      detail: `${detailParts.join(" or ")}.`,
+      level: incompleteCount >= 3 ? "High" : "Medium",
       tag: "Cleanup",
       source: "Records",
       time: "Today",
@@ -97,21 +102,39 @@ export const buildFallbackInsights = (records: TMedicalRecord[]): InsightItem[] 
     })
   }
 
-  const last90Days = new Date()
-  last90Days.setDate(last90Days.getDate() - 90)
-  const recentCount = records.filter((record) => {
-    const date = parseDate(record.recordDate || record.updatedAt || record.createdAt)
-    return date ? date >= last90Days : false
+  const ongoingSymptomsCount = records.filter((record) => {
+    const structured = record.structuredData
+    if (!structured || typeof structured !== "object") return false
+    const statusValue =
+      typeof structured.status === "string"
+        ? structured.status
+        : typeof (structured as Record<string, unknown>).symptomStatus === "string"
+          ? (structured as Record<string, unknown>).symptomStatus
+          : ""
+    return statusValue.toLowerCase() === "ongoing"
   }).length
-  if (recentCount === 0) {
+  if (ongoingSymptomsCount) {
     insights.push({
-      title: "No recent uploads",
-      detail: "There are no records in the last 90 days.",
-      level: "High",
-      tag: "Gap",
+      title: "Ongoing symptoms logged",
+      detail: `${ongoingSymptomsCount} records include symptoms marked as ongoing.`,
+      level: ongoingSymptomsCount >= 3 ? "Medium" : "Info",
+      tag: "Symptoms",
       source: "Records",
       time: "Today",
-      action: "Add record",
+      action: "Review",
+    })
+  }
+
+  const missingAttachments = records.filter((record) => !record.attachments?.length).length
+  if (missingAttachments) {
+    insights.push({
+      title: "Records without attachments",
+      detail: `${missingAttachments} records have no files attached.`,
+      level: "Info",
+      tag: "Cleanup",
+      source: "Records",
+      time: "Today",
+      action: "Add file",
     })
   }
 

@@ -28,6 +28,10 @@ const riskAssessmentSchema = new mongoose.Schema<RiskAssessmentDb>(
       default: Date.now,
       index: true,
     },
+    analysis: {
+      type: mongoose.Schema.Types.Mixed,
+      default: undefined,
+    },
   },
   { timestamps: true },
 );

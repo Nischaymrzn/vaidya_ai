@@ -1,0 +1,128 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { PanelLeftOpen } from "lucide-react";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import logo from "@/public/logo.svg";
+import { adminNavItems } from "./admin-nav-items";
+
+const isItemActive = (pathname: string, href: string) => {
+  if (href === "/admin") return pathname === "/admin";
+  return pathname === href || pathname.startsWith(`${href}/`);
+};
+
+export function AdminSidebar() {
+  const pathname = usePathname();
+  const { state, toggleSidebar } = useSidebar();
+  const collapsed = state === "collapsed";
+
+  const navItemClass = cn(
+    "group gap-3 rounded-lg px-3 py-4 text-[15px] font-medium transition [&>svg]:h-5 [&>svg]:w-5 [&>svg]:shrink-0",
+    "text-muted-foreground [&>svg]:text-muted-foreground",
+    "hover:bg-sidebar-accent hover:text-foreground [&:hover_svg]:text-foreground",
+    "data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:[&>svg]:text-primary",
+    "group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0",
+  );
+
+  return (
+    <Sidebar
+      collapsible="icon"
+      className="sticky top-0 border-r border-border bg-background/95"
+    >
+      <SidebarHeader className={cn("pb-3 pt-3.5", collapsed ? "px-2" : "px-3")}>
+        <div
+          className={cn(
+            "flex w-full items-center gap-3",
+            collapsed ? "flex-col gap-2" : "justify-between",
+          )}
+        >
+          <Link
+            href="/admin"
+            prefetch={false}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-sidebar-accent",
+              collapsed && "flex-col px-0",
+            )}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+              <Image src={logo} alt="Vaidya logo" width={24} height={24} />
+            </div>
+            <div className={cn("flex flex-col gap-0.5 transition-opacity", collapsed && "sr-only")}>
+              <span className="text-xl font-semibold tracking-tight text-foreground">
+                Vaidya Admin
+              </span>
+            </div>
+          </Link>
+
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
+            className={cn(
+              "group inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition hover:bg-sidebar-accent hover:text-foreground",
+              collapsed && "h-8 w-8",
+            )}
+          >
+            <PanelLeftOpen
+              className={cn(
+                "h-5 w-5 text-muted-foreground transition-transform duration-300 ease-out group-hover:text-foreground",
+                collapsed ? "rotate-0" : "rotate-180",
+              )}
+            />
+          </button>
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup className="space-y-0.5 px-4">
+          <SidebarGroupLabel className="px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Admin Workspace
+          </SidebarGroupLabel>
+          <SidebarMenu className="space-y-1">
+            {adminNavItems.map((item) => {
+              const active = isItemActive(pathname, item.href);
+              const button = (
+                <SidebarMenuButton asChild data-active={active} className={navItemClass}>
+                  <Link href={item.href} aria-current={active ? "page" : undefined}>
+                    <item.icon className="flex-none" />
+                    <span className={cn("truncate", collapsed && "sr-only")}>{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              );
+
+              return (
+                <SidebarMenuItem key={item.href}>
+                  {collapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>{button}</TooltipTrigger>
+                      <TooltipContent side="right" className="text-xs">
+                        {item.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    button
+                  )}
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+}

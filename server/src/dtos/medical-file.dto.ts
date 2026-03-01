@@ -10,7 +10,6 @@ export const CreateMedicalFileDto = MedicalFileSchema.omit({
   size: true,
   uploadedAt: true,
 }).extend({
-  recordId: z.string().optional(),
   url: z.string().url().optional(),
 });
 

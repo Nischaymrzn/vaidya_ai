@@ -2,6 +2,7 @@ import z from "zod";
 
 export const ImmunizationSchema = z.object({
   userId: z.string(),
+  recordId: z.string().optional(),
   vaccineName: z.string().min(1),
   date: z.coerce.date().optional(),
   doseNumber: z.coerce.number().int().nonnegative().optional(),

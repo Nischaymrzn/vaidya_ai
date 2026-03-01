@@ -17,6 +17,7 @@ import {
 type SymptomFormState = {
   symptomList: string;
   severity: string;
+  status: string;
   durationDays: string;
   diagnosis: string;
   disease: string;
@@ -27,6 +28,7 @@ type SymptomFormState = {
 export type SymptomPayload = {
   symptomList: string[];
   severity?: string;
+  status?: string;
   durationDays?: number;
   diagnosis?: string;
   disease?: string;
@@ -37,6 +39,7 @@ export type SymptomPayload = {
 const buildInitialForm = (symptom?: TSymptoms | null): SymptomFormState => ({
   symptomList: symptom?.symptomList?.join(", ") ?? "",
   severity: symptom?.severity ?? "",
+  status: symptom?.status ?? "ongoing",
   durationDays: symptom?.durationDays?.toString() ?? "",
   diagnosis: symptom?.diagnosis ?? "",
   disease: symptom?.disease ?? "",
@@ -56,6 +59,7 @@ const toPayload = (state: SymptomFormState): SymptomPayload => {
       .map((s) => s.trim())
       .filter(Boolean),
     severity: state.severity || undefined,
+    status: state.status || undefined,
     durationDays,
     diagnosis: state.diagnosis || undefined,
     disease: state.disease || undefined,
@@ -70,6 +74,7 @@ type SymptomFormProps = {
   submitLabel: string;
   busy?: boolean;
   severityOptions: string[];
+  statusOptions: string[];
 };
 
 export function SymptomForm({
@@ -78,6 +83,7 @@ export function SymptomForm({
   submitLabel,
   busy,
   severityOptions,
+  statusOptions,
 }: SymptomFormProps) {
   const [state, setState] = useState<SymptomFormState>(() => buildInitialForm(initial));
 
@@ -125,6 +131,22 @@ export function SymptomForm({
           </div>
 
           <div>
+            <Label className="text-sm font-medium text-slate-700">Status</Label>
+            <Select value={state.status} onValueChange={(val) => handleChange("status", val)}>
+              <SelectTrigger className="mt-1.5">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
             <Label className="text-sm font-medium text-slate-700">Duration (days)</Label>
             <Input
               type="number"
@@ -134,16 +156,16 @@ export function SymptomForm({
               className="mt-1.5"
             />
           </div>
-        </div>
 
-        <div>
-          <Label className="text-sm font-medium text-slate-700">When did it start?</Label>
-          <Input
-            type="datetime-local"
-            value={state.loggedAt}
-            onChange={(e) => handleChange("loggedAt", e.target.value)}
-            className="mt-1.5"
-          />
+          <div>
+            <Label className="text-sm font-medium text-slate-700">When did it start?</Label>
+            <Input
+              type="datetime-local"
+              value={state.loggedAt}
+              onChange={(e) => handleChange("loggedAt", e.target.value)}
+              className="mt-1.5"
+            />
+          </div>
         </div>
 
         <div>

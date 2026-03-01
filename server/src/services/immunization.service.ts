@@ -17,6 +17,7 @@ export class ImmunizationService {
     const immunization = await immunizationRepository.create({
       ...payload,
       userId,
+      ...(recordId ? { recordId } : {}),
     });
     if (!immunization) throw new ApiError(500, "Failed to create immunization");
 
@@ -71,11 +72,10 @@ export class ImmunizationService {
     if (!existing) throw new ApiError(404, "Immunization not found");
 
     const { recordId, ...payload } = data;
-    const updated = await immunizationRepository.update(
-      immunizationId,
-      userId,
-      payload,
-    );
+    const updated = await immunizationRepository.update(immunizationId, userId, {
+      ...payload,
+      ...(recordId ? { recordId } : {}),
+    });
     if (!updated) throw new ApiError(500, "Failed to update immunization");
 
     if (recordId) {

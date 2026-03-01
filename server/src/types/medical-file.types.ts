@@ -2,6 +2,7 @@ import z from "zod";
 
 export const MedicalFileSchema = z.object({
   userId: z.string(),
+  recordId: z.string().optional(),
   url: z.string().url(),
   publicId: z.string().optional(),
   type: z.string().optional(),

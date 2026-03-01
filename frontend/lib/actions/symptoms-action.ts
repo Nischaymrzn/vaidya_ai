@@ -41,7 +41,7 @@ export async function createSymptom(payload: Partial<TSymptoms>): Promise<ApiRes
 
 export async function updateSymptom(id: string, payload: Partial<TSymptoms>): Promise<ApiResponse<TSymptoms>> {
   try {
-    const response = await api.put(API.SYMPTOMS.UPDATE(id), payload);
+    const response = await api.patch(API.SYMPTOMS.UPDATE(id), payload);
     return {
       success: true,
       data: response.data.data || response.data,

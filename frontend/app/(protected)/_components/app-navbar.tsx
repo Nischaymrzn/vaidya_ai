@@ -1,10 +1,12 @@
 "use client"
 
+import { useEffect, useState, useTransition } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Bell, ChevronDown, PanelLeftOpen, Search } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +17,22 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { useSidebar } from "@/components/ui/sidebar"
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "@/lib/actions/notification-action"
+import { TNotification, TUser } from "@/lib/definition"
 import { cn } from "@/lib/utils"
-import { TUser } from "@/lib/definition"
 
 import { pageTitleMap, profileNavItems } from "./nav-items"
+
+const formatNotificationTime = (value?: string) => {
+  if (!value) return ""
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ""
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}
 
 const titleFromPathname = (pathname: string) => {
   const mapped = pageTitleMap.get(pathname)
@@ -45,9 +59,48 @@ export function AppNavbar({ user }: AppNavbarProps) {
   const pathname = usePathname()
   const pageTitle = titleFromPathname(pathname)
   const { state, toggleSidebar } = useSidebar()
+  const [notifications, setNotifications] = useState<TNotification[]>([])
+  const [notificationsLoading, setNotificationsLoading] = useState(true)
+  const [markAllPending, startMarkAllTransition] = useTransition()
+  const unreadCount = notifications.filter((item) => !item.read).length
   const initials =
     user?.name?.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase() ||
     "VA"
+
+  const loadNotifications = async () => {
+    setNotificationsLoading(true)
+    const result = await getNotifications({ page: 1, limit: 6 })
+    if (result.success && result.data) {
+      setNotifications(result.data)
+    } else {
+      setNotifications([])
+    }
+    setNotificationsLoading(false)
+  }
+
+  useEffect(() => {
+    void loadNotifications()
+  }, [])
+
+  const handleNotificationClick = (notification: TNotification) => {
+    if (notification.read) return
+    setNotifications((prev) =>
+      prev.map((item) =>
+        item._id === notification._id ? { ...item, read: true } : item
+      )
+    )
+    void markNotificationRead(notification._id)
+  }
+
+  const handleMarkAllRead = () => {
+    if (!unreadCount) return
+    startMarkAllTransition(async () => {
+      const result = await markAllNotificationsRead()
+      if (result.success) {
+        setNotifications((prev) => prev.map((item) => ({ ...item, read: true })))
+      }
+    })
+  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
@@ -66,7 +119,8 @@ export function AppNavbar({ user }: AppNavbarProps) {
               )}
             />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+
             <h1 className="truncate text-[20px] font-medium tracking-tight text-foreground md:text-[27px]">
               {pageTitle}
             </h1>
@@ -83,14 +137,103 @@ export function AppNavbar({ user }: AppNavbarProps) {
           </div>
 
           <div className="flex items-center gap-3 pl-3">
-            <button
-              type="button"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground transition hover:text-foreground md:h-11 md:w-11"
-              aria-label="Notifications"
-            >
-              <Bell className="h-5 w-4.5 lg:h-6 lg:w-5.5" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground transition hover:text-foreground md:h-11 md:w-11"
+                  aria-label="Notifications"
+                >
+                  <Bell className="h-5 w-4.5 lg:h-6 lg:w-5.5" />
+                  {unreadCount > 0 ? (
+                    <span className="absolute right-2 top-2 flex h-2 w-2 items-center justify-center rounded-full bg-rose-500">
+                      <span className="sr-only">{unreadCount} unread notifications</span>
+                    </span>
+                  ) : null}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-80 rounded-xl border border-slate-200/70 bg-white p-0 shadow-lg"
+              >
+                <DropdownMenuLabel className="px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">Notifications</p>
+                      <p className="text-xs text-slate-500">
+                        {notificationsLoading
+                          ? "Loading updates..."
+                          : unreadCount
+                            ? `${unreadCount} unread`
+                            : "You're all caught up."}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 rounded-full px-2 text-[11px] text-slate-600 hover:text-slate-900"
+                      disabled={notificationsLoading || markAllPending || unreadCount === 0}
+                      onClick={handleMarkAllRead}
+                    >
+                      Mark all read
+                    </Button>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="my-0" />
+                <div className="max-h-[320px] overflow-y-auto">
+                  {notificationsLoading ? (
+                    <div className="px-4 py-6 text-xs text-slate-500">
+                      Loading notifications...
+                    </div>
+                  ) : notifications.length ? (
+                    <div className="divide-y divide-slate-200/70">
+                      {notifications.map((item) => (
+                        <button
+                          key={item._id}
+                          type="button"
+                          onClick={() => handleNotificationClick(item)}
+                          className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50"
+                        >
+                          <span
+                            className={cn(
+                              "mt-1.5 h-2 w-2 rounded-full",
+                              item.read ? "bg-slate-300" : "bg-slate-900"
+                            )}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={cn(
+                                "text-sm",
+                                item.read ? "text-slate-700" : "font-medium text-slate-900"
+                              )}
+                            >
+                              {item.title}
+                            </p>
+                            <p className="text-xs text-slate-500">{item.message}</p>
+                          </div>
+                          <span className="text-[10px] text-slate-400">
+                            {formatNotificationTime(item.createdAt)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-6 text-xs text-slate-500">No notifications yet.</div>
+                  )}
+                </div>
+                <DropdownMenuSeparator className="my-0" />
+                <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <Link
+                    href="/profile/general/notification"
+                    className="flex w-full items-center justify-between px-4 py-3 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                  >
+                    View all notifications
+                    <span className="text-[10px] text-slate-400">Open</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

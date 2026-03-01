@@ -10,7 +10,9 @@ import {
   Settings,
   Sparkles,
   SquareActivity,
+  Stethoscope,
   User,
+  Users,
 } from "lucide-react";
 
 type NavLeafItem = {
@@ -28,6 +30,7 @@ type NavItem = {
 
 export const mainNavItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/family-health", label: "Family Health", icon: Users },
   { href: "/health-records", label: "Health Records", icon: FolderHeart },
   {
     label: "Health Overview",
@@ -46,6 +49,11 @@ export const mainNavItems: NavItem[] = [
         href: "/health-intelligence/risk-analysis",
         label: "Risk Analysis",
         icon: Brain,
+      },
+      {
+        href: "/health-intelligence/ai-doctors",
+        label: "Vaidya Care",
+        icon: Stethoscope,
       },
       { href: "/ai-assistant", label: "Vaidya.ai", icon: Sparkles },
     ],

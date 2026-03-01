@@ -35,12 +35,14 @@ export type TMedicalRecord = {
   recordDate?: string;
   visitType?: string;
   diagnosis?: string;
+  diagnosisStatus?: "active" | "resolved" | "unknown";
   content?: string;
   notes?: string;
   status?: "Verified" | "Processed" | "Reviewed" | "Active";
   aiScanned?: boolean;
   structuredData?: Record<string, unknown>;
   attachments?: TMedicalRecordAttachment[];
+  items?: { type: string; refId: string }[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -100,8 +102,89 @@ export type TRiskAssessment = {
   riskScore?: number;
   vaidyaScore?: number;
   assessmentDate?: string;
+  analysis?: {
+    summary?: string;
+    demographics?: {
+      name?: string;
+      age?: number;
+      gender?: string;
+      bloodGroup?: string;
+      heightCm?: number;
+      weightKg?: number;
+    };
+    vitalsSnapshot?: {
+      recordedAt?: string;
+      systolicBp?: number;
+      diastolicBp?: number;
+      glucoseLevel?: number;
+      heartRate?: number;
+      bmi?: number;
+      weight?: number;
+      height?: number;
+    };
+    sections?: {
+      vitals?: string;
+      symptoms?: string;
+      records?: string;
+      medications?: string;
+      allergies?: string;
+      immunizations?: string;
+    };
+    keyFindings?: Array<{
+      title: string;
+      detail: string;
+      priority?: "High" | "Medium" | "Low" | "Info";
+    }>;
+    dataGaps?: string[];
+    recommendations?: string[];
+    nextSteps?: string[];
+    generatedAt?: string;
+  };
   createdAt?: string;
   updatedAt?: string;
+};
+
+export type TPredictionScore = {
+  disease: string;
+  probability: number;
+};
+
+export type TPredictionFinal = TPredictionScore & {
+  explanation: string;
+};
+
+export type TPredictionResponse = {
+  top10: TPredictionScore[];
+  finalTop3: TPredictionFinal[];
+  analysisSummary: string;
+};
+
+export type THeartDiseaseInsight = {
+  title: string;
+  description: string;
+  priority: "High" | "Medium" | "Low" | "Info";
+};
+
+export type TTuberculosisInsight = {
+  title: string;
+  description: string;
+  priority: "High" | "Medium" | "Low" | "Info";
+};
+
+export type THeartDiseasePredictionResponse = {
+  prediction: number;
+  probability: number;
+  riskLevel: "Low" | "Moderate" | "High";
+  probabilities: { label: number; probability: number }[];
+  insights: THeartDiseaseInsight[];
+};
+
+export type TTuberculosisPredictionResponse = {
+  prediction: string;
+  probability: number;
+  probabilities: { label: string; probability: number }[];
+  riskLevel: "Low" | "Moderate" | "High";
+  insights: TTuberculosisInsight[];
 };
 
 export type TVitals = {
@@ -123,8 +206,10 @@ export type TVitals = {
 export type TSymptoms = {
   _id: string;
   userId: string;
+  recordId?: string;
   symptomList?: string[];
   severity?: string;
+  status?: "ongoing" | "resolved" | "unknown";
   durationDays?: number;
   diagnosis?: string;
   disease?: string;
@@ -137,6 +222,7 @@ export type TSymptoms = {
 export type TMedication = {
   _id: string;
   userId: string;
+  recordId?: string;
   medicineName: string;
   dosage?: string;
   frequency?: string;
@@ -146,20 +232,6 @@ export type TMedication = {
   purpose?: string;
   diagnosis?: string;
   disease?: string;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-export type TLabTest = {
-  _id: string;
-  userId: string;
-  testName: string;
-  resultValue?: string;
-  normalRange?: string;
-  unit?: string;
-  testedDate?: string;
-  reportFileId?: string;
   notes?: string;
   createdAt?: string;
   updatedAt?: string;

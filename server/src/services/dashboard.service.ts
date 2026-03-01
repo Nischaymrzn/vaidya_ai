@@ -1,6 +1,5 @@
 import { AllergyRepository } from "../repositories/allergy.repository";
 import { HealthInsightRepository } from "../repositories/health-insight.repository";
-import { LabTestRepository } from "../repositories/lab-test.repository";
 import { MedicalRecordRepository } from "../repositories/medical-record.repository";
 import { MedicationsRepository } from "../repositories/medications.repository";
 import { RiskAssessmentRepository } from "../repositories/risk-assessment.repository";
@@ -8,7 +7,6 @@ import { SymptomsRepository } from "../repositories/symptoms.repository";
 import { VitalsRepository } from "../repositories/vitals.repository";
 import { RiskAssessmentService } from "./risk-assessment.service";
 import type { AllergyDb } from "../models/allergy.model";
-import type { LabTestDb } from "../models/lab-test.model";
 import type { MedicationsDb } from "../models/medications.model";
 import type { MedicalRecordDb } from "../models/medical-record.model";
 import type { SymptomsDb } from "../models/symptoms.model";
@@ -29,7 +27,6 @@ import type {
 const vitalsRepository = new VitalsRepository();
 const symptomsRepository = new SymptomsRepository();
 const medicationsRepository = new MedicationsRepository();
-const labTestRepository = new LabTestRepository();
 const allergyRepository = new AllergyRepository();
 const medicalRecordRepository = new MedicalRecordRepository();
 const riskAssessmentRepository = new RiskAssessmentRepository();
@@ -150,7 +147,6 @@ export class DashboardService {
       vitals,
       symptoms,
       medications,
-      labTests,
       allergies,
       medicalRecordsResult,
       assessmentsResult,
@@ -158,7 +154,6 @@ export class DashboardService {
       vitalsRepository.getAllForUser(userId),
       symptomsRepository.getAllForUser(userId),
       medicationsRepository.getAllForUser(userId),
-      labTestRepository.getAllForUser(userId),
       allergyRepository.getAllForUser(userId),
       medicalRecordRepository.getAllForUser(userId, { page: 1, limit: 30 }),
       riskAssessmentRepository.getAllForUser(userId),
@@ -358,7 +353,7 @@ export class DashboardService {
             "createdAt",
           ]),
       )
-      .slice(0, 4)
+      .slice(0, 3)
       .map((medication: MedicationsDb) => ({
         name: medication.medicineName,
         dose: medication.dosage ?? "--",
@@ -373,18 +368,6 @@ export class DashboardService {
     const allergyItems = allergies
       .filter((item: AllergyDb) => item.status !== "resolved")
       .map((item: AllergyDb) => item.allergen);
-
-    const latestLab = [...labTests].sort(
-      (a, b) =>
-        pickTimestamp(b as Record<string, unknown>, [
-          "testedDate",
-          "createdAt",
-        ]) -
-        pickTimestamp(a as Record<string, unknown>, [
-          "testedDate",
-          "createdAt",
-        ]),
-    )[0];
 
     const diagnosisRecord = [...medicalRecordsResult.data].find(
       (record: MedicalRecordDb) => record.diagnosis,
@@ -406,6 +389,18 @@ export class DashboardService {
       },
     ).length;
 
+    const latestSymptoms = [...symptoms].sort(
+      (a, b) =>
+        pickTimestamp(b as Record<string, unknown>, [
+          "loggedAt",
+          "createdAt",
+        ]) -
+        pickTimestamp(a as Record<string, unknown>, [
+          "loggedAt",
+          "createdAt",
+        ]),
+    )[0] as SymptomsDb | undefined;
+
     const clinicalItems: DashboardClinicalItem[] = [
       {
         label: "Active Diagnosis",
@@ -422,16 +417,11 @@ export class DashboardService {
         bg: "bg-white",
       },
       {
-        label: "Recent Lab Work",
-        value: latestLab ? latestLab.testName : "No lab tests recorded",
-        meta: latestLab
-          ? formatShortDate(
-              getItemDate(latestLab as Record<string, unknown>, [
-                "testedDate",
-                "createdAt",
-              ]),
-            )
-          : "Upload lab results to track",
+        label: "Active Symptoms",
+        value: `${symptoms.filter((s) => s.status === "ongoing").length} ongoing`,
+        meta: latestSymptoms?.loggedAt
+          ? `Last updated ${formatShortDate(latestSymptoms.loggedAt)}`
+          : "No symptoms logged",
         bg: "bg-white",
       },
       {
@@ -441,18 +431,6 @@ export class DashboardService {
         bg: "bg-white",
       },
     ];
-
-    const latestSymptoms = [...symptoms].sort(
-      (a, b) =>
-        pickTimestamp(b as Record<string, unknown>, [
-          "loggedAt",
-          "createdAt",
-        ]) -
-        pickTimestamp(a as Record<string, unknown>, [
-          "loggedAt",
-          "createdAt",
-        ]),
-    )[0] as SymptomsDb | undefined;
 
     const summaryCards: DashboardSummaryCard[] = [
       {
@@ -615,20 +593,6 @@ export class DashboardService {
           "Symptoms logged",
         timestamp: pickTimestamp(symptom as Record<string, unknown>, [
           "loggedAt",
-          "createdAt",
-        ]),
-      })),
-      ...labTests.slice(0, 2).map((lab: LabTestDb) => ({
-        date: formatShortDate(
-          getItemDate(lab as Record<string, unknown>, [
-            "testedDate",
-            "createdAt",
-          ]),
-        ),
-        title: "Lab test recorded",
-        meta: lab.testName,
-        timestamp: pickTimestamp(lab as Record<string, unknown>, [
-          "testedDate",
           "createdAt",
         ]),
       })),

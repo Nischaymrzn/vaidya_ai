@@ -2,6 +2,7 @@ import z from "zod";
 
 export const MedicationsSchema = z.object({
   userId: z.string(),
+  recordId: z.string().optional(),
   medicineName: z.string().min(1),
   dosage: z.string().optional(),
   frequency: z.string().optional(),

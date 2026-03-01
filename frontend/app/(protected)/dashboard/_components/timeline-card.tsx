@@ -18,7 +18,10 @@ export function TimelineCard({ items }: TimelineCardProps) {
         {items.length ? (
           <div className="space-y-0">
             {items.map((item, i) => (
-              <div key={item.title + item.date} className="relative flex gap-3 pb-4 last:pb-0">
+              <div
+                key={`${item.title}-${item.date}-${item.meta}-${i}`}
+                className="relative flex gap-3 pb-4 last:pb-0"
+              >
                 {i < items.length - 1 && (
                   <div className="absolute left-[7px] top-5 bottom-0 w-px bg-slate-200" />
                 )}

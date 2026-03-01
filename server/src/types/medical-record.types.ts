@@ -7,6 +7,8 @@ export const MedicalRecordStatusSchema = z.enum([
   "Active",
 ]);
 
+export const DiagnosisStatusSchema = z.enum(["active", "resolved", "unknown"]);
+
 export const MedicalRecordAttachmentSchema = z.object({
   url: z.string().url(),
   publicId: z.string().optional(),
@@ -20,7 +22,6 @@ export const MedicalRecordItemSchema = z.object({
     "vitals",
     "symptoms",
     "medications",
-    "lab_tests",
     "medical_files",
     "allergies",
     "immunizations",
@@ -37,6 +38,7 @@ export const MedicalRecordSchema = z.object({
   recordDate: z.coerce.date().optional(),
   visitType: z.string().optional(),
   diagnosis: z.string().optional(),
+  diagnosisStatus: DiagnosisStatusSchema.optional(),
   content: z.string().optional(),
   notes: z.string().optional(),
   status: MedicalRecordStatusSchema.optional(),

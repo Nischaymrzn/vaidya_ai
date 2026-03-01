@@ -8,6 +8,10 @@ export const defaultVisitTypes = [
 
 export const statusOptions = ["All", "Verified", "Processed", "Reviewed", "Active"]
 
+export const diagnosisStatusOptions = ["active", "resolved", "unknown"]
+
+export const symptomStatusOptions = ["ongoing", "resolved", "unknown"]
+
 export const dateOptions = ["Any time", "Last 30 days", "Last 90 days", "2026", "2025"]
 
 export const sortOptions = ["Last updated", "Name A-Z", "Name Z-A"]
@@ -15,7 +19,6 @@ export const sortOptions = ["Last updated", "Name A-Z", "Name Z-A"]
 export const recordTypes = [
   "Visit",
   "Vitals",
-  "Lab",
   "Diagnosis",
   "Imaging",
   "Prescription",
@@ -26,8 +29,6 @@ export const recordTypes = [
 export const extraCategoryOptions = ["Insurance"]
 
 export const categoryAliases: Record<string, string> = {
-  "lab results": "Lab",
-  labs: "Lab",
   "visit notes": "Visit",
   visits: "Visit",
   prescriptions: "Prescription",
@@ -48,20 +49,14 @@ export const typeFieldMap: Record<
     { key: "height", label: "Height (cm)", placeholder: "170" },
     { key: "bmi", label: "BMI", placeholder: "23.5" },
   ],
-  Lab: [
-    { key: "testName", label: "Test name", placeholder: "HbA1c" },
-    { key: "resultValue", label: "Result value", placeholder: "6.5" },
-    { key: "unit", label: "Unit", placeholder: "%" },
-    { key: "normalRange", label: "Normal range", placeholder: "4.0 - 5.6" },
-    { key: "testedDate", label: "Tested date", placeholder: "2026-02-12" },
-  ],
   Diagnosis: [
-    { key: "diagnosis", label: "Diagnosis", placeholder: "Type 2 diabetes" },
-    { key: "disease", label: "Disease", placeholder: "Diabetes" },
-    { key: "severity", label: "Severity", placeholder: "Mild/Moderate" },
     { key: "symptomList", label: "Symptoms", placeholder: "fatigue, thirst" },
+    { key: "severity", label: "Severity", placeholder: "Mild/Moderate" },
+    { key: "status", label: "Symptom status", placeholder: "ongoing/resolved" },
     { key: "durationDays", label: "Duration (days)", placeholder: "30" },
-    { key: "notes", label: "Notes", placeholder: "Additional context" },
+    { key: "medicineName", label: "Medication", placeholder: "Metformin" },
+    { key: "dosage", label: "Dosage", placeholder: "500 mg" },
+    { key: "frequency", label: "Frequency", placeholder: "Once daily" },
   ],
   Imaging: [
     { key: "modality", label: "Modality", placeholder: "X-Ray" },
@@ -76,8 +71,6 @@ export const typeFieldMap: Record<
     { key: "startDate", label: "Start date", placeholder: "2026-02-12" },
     { key: "endDate", label: "End date", placeholder: "2026-05-12" },
     { key: "purpose", label: "Purpose", placeholder: "Glucose control" },
-    { key: "diagnosis", label: "Diagnosis", placeholder: "Type 2 diabetes" },
-    { key: "disease", label: "Disease", placeholder: "Diabetes" },
     { key: "notes", label: "Notes", placeholder: "After meals" },
   ],
   Allergy: [
@@ -107,14 +100,17 @@ export const typeFieldMap: Record<
     { key: "reasonForVisit", label: "Reason for visit", placeholder: "Follow-up" },
     { key: "chiefComplaint", label: "Chief complaint", placeholder: "Headache" },
     { key: "symptomList", label: "Symptoms", placeholder: "nausea, dizziness" },
-    { key: "diagnosis", label: "Diagnosis", placeholder: "Migraine" },
-    { key: "disease", label: "Disease", placeholder: "Migraine" },
-    { key: "notes", label: "Notes", placeholder: "Triggered by stress" },
+    { key: "severity", label: "Severity", placeholder: "Mild/Moderate" },
+    { key: "status", label: "Symptom status", placeholder: "ongoing/resolved" },
+    { key: "durationDays", label: "Duration (days)", placeholder: "3" },
+    { key: "medicineName", label: "Medication", placeholder: "Ibuprofen" },
+    { key: "dosage", label: "Dosage", placeholder: "200 mg" },
+    { key: "frequency", label: "Frequency", placeholder: "Twice daily" },
   ],
 }
 
 export const insightBadgeClasses: Record<string, string> = {
-  High: "border-[#1F7AE0]/20 bg-[#1F7AE0]/10 text-[#1F7AE0]",
-  Medium: "border-[#1F7AE0]/20 bg-[#1F7AE0]/10 text-[#1F7AE0]",
-  Info: "border-[#1F7AE0]/20 bg-[#1F7AE0]/10 text-[#1F7AE0]",
+  High: "border-rose-200 bg-rose-50 text-rose-700",
+  Medium: "border-amber-200 bg-amber-50 text-amber-700",
+  Info: "border-sky-200 bg-sky-50 text-sky-700",
 }

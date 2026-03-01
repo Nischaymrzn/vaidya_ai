@@ -3,6 +3,7 @@ import { UserDataType } from "../types/user-data.types";
 
 export type UserDataDb = Omit<UserDataType, "userId"> & {
   userId: mongoose.Types.ObjectId;
+  user?: mongoose.Types.ObjectId;
 };
 
 const latestVitalsSchema = new mongoose.Schema(
@@ -32,6 +33,11 @@ const userDataSchema = new mongoose.Schema<UserDataDb>(
       index: true,
       unique: true,
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
+    },
     fullName: String,
     dob: Date,
     gender: String,
@@ -42,6 +48,10 @@ const userDataSchema = new mongoose.Schema<UserDataDb>(
     address: String,
     emergencyContact: String,
     latestVitals: {
+      type: latestVitalsSchema,
+      default: undefined,
+    },
+    vitals: {
       type: latestVitalsSchema,
       default: undefined,
     },

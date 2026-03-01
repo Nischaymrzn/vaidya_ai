@@ -144,7 +144,11 @@ const riskAssessmentService = new RiskAssessmentService();
 export class VitalsService {
   async createVitals(userId: string, data: CreateVitalsPayload) {
     const { recordId, ...payload } = data;
-    const vitals = await vitalsRepository.create({ ...payload, userId });
+    const vitals = await vitalsRepository.create({
+      ...payload,
+      userId,
+      ...(recordId ? { recordId } : {}),
+    });
     if (!vitals) throw new ApiError(500, "Failed to create vitals");
 
     if (recordId) {
@@ -186,7 +190,10 @@ export class VitalsService {
     if (!existing) throw new ApiError(404, "Vitals not found");
 
     const { recordId, ...payload } = data;
-    const updated = await vitalsRepository.update(vitalsId, userId, payload);
+    const updated = await vitalsRepository.update(vitalsId, userId, {
+      ...payload,
+      ...(recordId ? { recordId } : {}),
+    });
     if (!updated) throw new ApiError(500, "Failed to update vitals");
 
     if (recordId) {

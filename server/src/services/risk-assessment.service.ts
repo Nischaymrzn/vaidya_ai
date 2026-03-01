@@ -14,16 +14,22 @@ import {
 import {
   ReportInsightRepository,
 } from "../repositories/report-insight.repository";
+import { AllergyRepository } from "../repositories/allergy.repository";
+import { ImmunizationRepository } from "../repositories/immunization.repository";
+import { MedicalRecordRepository } from "../repositories/medical-record.repository";
+import { MedicalFileRepository } from "../repositories/medical-file.repository";
 import { VitalsRepository } from "../repositories/vitals.repository";
 import { SymptomsRepository } from "../repositories/symptoms.repository";
-import { LabTestRepository } from "../repositories/lab-test.repository";
 import { MedicationsRepository } from "../repositories/medications.repository";
 import { UserDataRepository } from "../repositories/user-data.repository";
 import type { VitalsDb } from "../models/vitals.model";
 import type { SymptomsDb } from "../models/symptoms.model";
-import type { LabTestDb } from "../models/lab-test.model";
 import type { MedicationsDb } from "../models/medications.model";
 import type { UserDataDb } from "../models/user-data.model";
+import type { AllergyDb } from "../models/allergy.model";
+import type { ImmunizationDb } from "../models/immunization.model";
+import type { MedicalRecordDb } from "../models/medical-record.model";
+import type { MedicalFileDb } from "../models/medical-file.model";
 import type { GenerateRiskAssessmentPayload } from "../dtos/risk-assessment.dto";
 import mongoose from "mongoose";
 
@@ -34,9 +40,12 @@ const healthInsightRepository = new HealthInsightRepository();
 const reportInsightRepository = new ReportInsightRepository();
 const vitalsRepository = new VitalsRepository();
 const symptomsRepository = new SymptomsRepository();
-const labTestRepository = new LabTestRepository();
 const medicationsRepository = new MedicationsRepository();
 const userDataRepository = new UserDataRepository();
+const allergyRepository = new AllergyRepository();
+const immunizationRepository = new ImmunizationRepository();
+const medicalRecordRepository = new MedicalRecordRepository();
+const medicalFileRepository = new MedicalFileRepository();
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
@@ -44,21 +53,21 @@ const clamp = (value: number, min: number, max: number) =>
 const DEFAULT_RISK_COOLDOWN_HOURS = 6;
 const DEFAULT_RECENT_VITALS_LIMIT = 10;
 const DEFAULT_RECENT_SYMPTOMS_LIMIT = 10;
+const DEFAULT_RECENT_RECORDS_LIMIT = 6;
+const DEFAULT_RECENT_ALLERGIES_LIMIT = 6;
+const DEFAULT_RECENT_IMMUNIZATIONS_LIMIT = 6;
+const DEFAULT_RECENT_FILES_LIMIT = 6;
 const DEFAULT_RISK_HISTORY_HOURS = 24;
-
-const toNumber = (value?: unknown) => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
-  }
-  return undefined;
-};
 
 const toDate = (value?: unknown) => {
   if (!value) return undefined;
   const date = value instanceof Date ? value : new Date(String(value));
   return Number.isNaN(date.getTime()) ? undefined : date;
+};
+
+const formatDate = (value?: unknown) => {
+  const date = toDate(value);
+  return date ? date.toISOString() : undefined;
 };
 
 const pickLatestDate = (
@@ -172,9 +181,6 @@ type RiskSignals = {
   symptomCount?: number;
   symptomSeverity?: string;
   symptomDurationDays?: number;
-  labTestName?: string;
-  labResultValue?: string;
-  labUnit?: string;
   medicationConditions?: string[];
 };
 
@@ -289,20 +295,6 @@ const computeRiskScore = (signals: RiskSignals) => {
     } else if (severity === "mild") {
       score += 3;
       factors.push("Mild symptoms");
-    }
-  }
-
-  if (signals.labTestName && signals.labResultValue) {
-    const labValue = toNumber(signals.labResultValue);
-    const name = signals.labTestName.toLowerCase();
-    if (name.includes("hba1c") && typeof labValue === "number") {
-      if (labValue >= 6.5) {
-        score += 15;
-        factors.push("Elevated HbA1c");
-      } else if (labValue >= 5.7) {
-        score += 8;
-        factors.push("Borderline HbA1c");
-      }
     }
   }
 
@@ -437,6 +429,139 @@ ${JSON.stringify(payload)}
 `;
 };
 
+type AnalysisSnapshot = {
+  demographics: {
+    age?: number;
+    gender?: string;
+    bloodGroup?: string;
+    heightCm?: number;
+    weightKg?: number;
+  };
+  vitals?: {
+    recordedAt?: string;
+    systolicBp?: number;
+    diastolicBp?: number;
+    glucoseLevel?: number;
+    heartRate?: number;
+    bmi?: number;
+    weight?: number;
+    height?: number;
+  };
+  symptoms?: {
+    loggedAt?: string;
+    severity?: string;
+    durationDays?: number;
+    symptomList?: string[];
+  };
+  medications: Array<{
+    name?: string;
+    dosage?: string;
+    frequency?: string;
+    purpose?: string;
+    diagnosis?: string;
+    disease?: string;
+    startDate?: string;
+    endDate?: string;
+  }>;
+  allergies: Array<{
+    allergen?: string;
+    type?: string;
+    severity?: string;
+    reaction?: string;
+    status?: string;
+    recordedAt?: string;
+  }>;
+  immunizations: Array<{
+    vaccineName?: string;
+    date?: string;
+    doseNumber?: number;
+    nextDue?: string;
+  }>;
+  medicalRecords: Array<{
+    title?: string;
+    recordType?: string;
+    category?: string;
+    provider?: string;
+    recordDate?: string;
+    diagnosis?: string;
+    status?: string;
+  }>;
+  medicalFiles: Array<{
+    name?: string;
+    type?: string;
+    uploadedAt?: string;
+  }>;
+};
+
+type AiFullAnalysisResponse = {
+  summary?: string;
+  key_findings?: Array<{
+    title: string;
+    detail: string;
+    priority?: string;
+  }>;
+  sections?: {
+    vitals?: string;
+    symptoms?: string;
+    records?: string;
+    medications?: string;
+    allergies?: string;
+    immunizations?: string;
+  };
+  data_gaps?: string[];
+  recommendations?: string[];
+  next_steps?: string[];
+};
+
+const buildFullAnalysisPrompt = (params: {
+  riskScore: number;
+  riskLevel: string;
+  vaidyaScore: number;
+  confidenceScore: number;
+  factors: string[];
+  snapshot: AnalysisSnapshot;
+  notes?: string;
+}) => {
+  const payload = {
+    scores: {
+      riskScore: params.riskScore,
+      riskLevel: params.riskLevel,
+      vaidyaScore: params.vaidyaScore,
+      confidenceScore: params.confidenceScore,
+    },
+    factors: params.factors,
+    notes: params.notes,
+    snapshot: params.snapshot,
+  };
+
+  return `
+You are a clinical risk analysis assistant for an informational wellness app.
+Do not provide diagnosis or treatment. Use supportive, non-alarming language.
+If riskLevel is High, recommend a clinician review.
+Return JSON only with the following shape:
+{
+  "summary": "string",
+  "key_findings": [
+    { "title": "string", "detail": "string", "priority": "High|Medium|Low|Info" }
+  ],
+  "sections": {
+    "vitals": "string",
+    "symptoms": "string",
+    "records": "string",
+    "medications": "string",
+    "allergies": "string",
+    "immunizations": "string"
+  },
+  "data_gaps": ["string"],
+  "recommendations": ["string"],
+  "next_steps": ["string"]
+}
+If data is insufficient, keep summary short and list data_gaps.
+Input data:
+${JSON.stringify(payload)}
+`;
+};
+
 type AiInsight = {
   insight_title: string;
   description: string;
@@ -448,7 +573,64 @@ type AiRiskResponse = {
   insights?: AiInsight[];
 };
 
-const callGemini = async (prompt: string, useSchema: boolean) => {
+const riskInsightSchema = {
+  type: "object",
+  properties: {
+    predicted_condition: { type: "string" },
+    insights: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          insight_title: { type: "string" },
+          description: { type: "string" },
+          priority: { type: "string" },
+        },
+        required: ["insight_title", "description"],
+      },
+    },
+  },
+  required: ["predicted_condition", "insights"],
+};
+
+const fullAnalysisSchema = {
+  type: "object",
+  properties: {
+    summary: { type: "string" },
+    key_findings: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          detail: { type: "string" },
+          priority: { type: "string" },
+        },
+        required: ["title", "detail"],
+      },
+    },
+    sections: {
+      type: "object",
+      properties: {
+        vitals: { type: "string" },
+        symptoms: { type: "string" },
+        records: { type: "string" },
+        medications: { type: "string" },
+        allergies: { type: "string" },
+        immunizations: { type: "string" },
+      },
+    },
+    data_gaps: { type: "array", items: { type: "string" } },
+    recommendations: { type: "array", items: { type: "string" } },
+    next_steps: { type: "array", items: { type: "string" } },
+  },
+};
+
+const callGemini = async (
+  prompt: string,
+  useSchema: boolean,
+  schemaOverride?: Record<string, unknown>,
+) => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("Missing GEMINI_API_KEY");
   const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
@@ -461,25 +643,7 @@ const callGemini = async (prompt: string, useSchema: boolean) => {
   };
 
   if (useSchema) {
-    generationConfig.responseJsonSchema = {
-      type: "object",
-      properties: {
-        predicted_condition: { type: "string" },
-        insights: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              insight_title: { type: "string" },
-              description: { type: "string" },
-              priority: { type: "string" },
-            },
-            required: ["insight_title", "description"],
-          },
-        },
-      },
-      required: ["predicted_condition", "insights"],
-    };
+    generationConfig.responseJsonSchema = schemaOverride ?? riskInsightSchema;
   }
 
   try {
@@ -520,6 +684,26 @@ const generateAiInsights = async (prompt: string) => {
       try {
         const text = await callGemini(prompt, false);
         const parsed = extractJson(text) as AiRiskResponse | null;
+        return parsed ?? null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+};
+
+const generateFullAnalysis = async (prompt: string) => {
+  const useSchema = process.env.GEMINI_USE_JSON_SCHEMA !== "false";
+  try {
+    const text = await callGemini(prompt, useSchema, fullAnalysisSchema);
+    const parsed = extractJson(text) as AiFullAnalysisResponse | null;
+    return parsed ?? null;
+  } catch (error) {
+    if (useSchema) {
+      try {
+        const text = await callGemini(prompt, false);
+        const parsed = extractJson(text) as AiFullAnalysisResponse | null;
         return parsed ?? null;
       } catch {
         return null;
@@ -729,21 +913,17 @@ const pickSymptoms = (symptomsList: SymptomsDb[]) => {
   };
 };
 
-const pickLabTest = (labTest?: LabTestDb | null) => {
-  if (!labTest) return undefined;
-  const createdAt = (labTest as { createdAt?: Date }).createdAt;
-  return {
-    testName: labTest.testName,
-    resultValue: labTest.resultValue,
-    unit: labTest.unit,
-    testedDate: labTest.testedDate ?? createdAt,
-  };
-};
-
 export class RiskAssessmentService {
   async generateAssessment(userId: string, payload: GenerateRiskAssessmentPayload) {
-    const { vitalsIds, symptomsIds, maxInsights, notes, includeAi, reportId } =
-      payload;
+    const {
+      vitalsIds,
+      symptomsIds,
+      maxInsights,
+      notes,
+      includeAi,
+      includeAnalysis,
+      reportId,
+    } = payload;
     const shouldUseLatest = payload.useLatest ?? true;
     const forceRefresh =
       payload.force === true ||
@@ -753,13 +933,14 @@ export class RiskAssessmentService {
       Boolean(vitalsIds?.length) ||
       Boolean(symptomsIds?.length);
 
-    const [userData, latestLabTest, latestMedication, latestAssessment] =
-      await Promise.all([
-        userDataRepository.getByUserId(userId),
-        labTestRepository.getLatestForUser(userId),
-        medicationsRepository.getLatestForUser(userId),
-        riskAssessmentRepository.getLatestForUser(userId),
-      ]);
+    const [userData, latestMedication, latestAssessment] = await Promise.all([
+      userDataRepository.getByUserId(userId),
+      medicationsRepository.getLatestForUser(userId),
+      riskAssessmentRepository.getLatestForUser(userId),
+    ]);
+    const analysisRequested = includeAnalysis === true;
+    const needsAnalysis = analysisRequested && !latestAssessment?.analysis;
+    const shouldForceForAnalysis = forceRefresh || needsAnalysis;
 
     const vitalsList = vitalsIds?.length
       ? (
@@ -787,9 +968,63 @@ export class RiskAssessmentService {
           )
         : [];
 
+    const [
+      allergiesList,
+      immunizationsList,
+      medicalRecordsPage,
+      medicalFilesList,
+      medicationsList,
+    ] = analysisRequested
+      ? await Promise.all([
+          allergyRepository.getAllForUser(userId),
+          immunizationRepository.getAllForUser(userId),
+          medicalRecordRepository.getAllForUser(userId, {
+            page: 1,
+            limit: Number(
+              process.env.RISK_RECENT_RECORDS_LIMIT ?? DEFAULT_RECENT_RECORDS_LIMIT,
+            ),
+          }),
+          medicalFileRepository.getAllForUser(userId),
+          medicationsRepository.getAllForUser(userId),
+        ])
+      : [[], [], null, [], []];
+
+    const recentAllergies = analysisRequested
+      ? allergiesList.slice(
+          0,
+          Number(process.env.RISK_RECENT_ALLERGIES_LIMIT ?? DEFAULT_RECENT_ALLERGIES_LIMIT),
+        )
+      : [];
+    const recentImmunizations = analysisRequested
+      ? immunizationsList.slice(
+          0,
+          Number(
+            process.env.RISK_RECENT_IMMUNIZATIONS_LIMIT ??
+              DEFAULT_RECENT_IMMUNIZATIONS_LIMIT,
+          ),
+        )
+      : [];
+    const recentMedicalRecords = analysisRequested
+      ? (medicalRecordsPage?.data ?? []).slice(
+          0,
+          Number(process.env.RISK_RECENT_RECORDS_LIMIT ?? DEFAULT_RECENT_RECORDS_LIMIT),
+        )
+      : [];
+    const recentMedicalFiles = analysisRequested
+      ? medicalFilesList.slice(
+          0,
+          Number(process.env.RISK_RECENT_FILES_LIMIT ?? DEFAULT_RECENT_FILES_LIMIT),
+        )
+      : [];
+    const recentMedications = analysisRequested
+      ? medicationsList.slice(
+          0,
+          Number(process.env.RISK_RECENT_MEDICATIONS_LIMIT ?? 8),
+        )
+      : [];
+
       const vitalsSnapshot = pickVitals(vitalsList, userData);
       const symptomsSnapshot = pickSymptoms(symptomsList);
-      const labSnapshot = pickLabTest(latestLabTest);
 
       const latestVital = selectMostRecent(vitalsList, [
         "recordedAt",
@@ -802,10 +1037,6 @@ export class RiskAssessmentService {
       const latestDataAt = maxDate([
         pickLatestDate(latestVital, ["recordedAt", "createdAt"]),
         pickLatestDate(latestSymptom, ["loggedAt", "createdAt"]),
-        pickLatestDate(latestLabTest as Record<string, unknown>, [
-          "testedDate",
-          "createdAt",
-        ]),
         pickLatestDate(latestMedication as Record<string, unknown>, [
           "startDate",
           "createdAt",
@@ -816,7 +1047,7 @@ export class RiskAssessmentService {
         ]),
       ]);
 
-    if (!forceRefresh && latestAssessment) {
+    if (!shouldForceForAnalysis && latestAssessment) {
       const assessmentDate = pickLatestDate(
         latestAssessment as Record<string, unknown>,
         ["assessmentDate", "createdAt"],
@@ -862,6 +1093,7 @@ export class RiskAssessmentService {
           riskScore: latestAssessment.riskScore,
           vaidyaScore: latestAssessment.vaidyaScore,
           assessmentDate: new Date(),
+          analysis: latestAssessment.analysis,
         });
 
         if (vitalsList.length) {
@@ -923,9 +1155,6 @@ export class RiskAssessmentService {
         : undefined,
       symptomSeverity: symptomsSnapshot?.severity,
       symptomDurationDays: symptomsSnapshot?.durationDays,
-      labTestName: labSnapshot?.testName,
-      labResultValue: labSnapshot?.resultValue,
-      labUnit: labSnapshot?.unit,
       medicationConditions: buildMedicationConditions(latestMedication),
     };
 
@@ -938,16 +1167,233 @@ export class RiskAssessmentService {
       const date = toDate(symptomsSnapshot.loggedAt);
       if (date) latestDates.push(date);
     }
-    if (labSnapshot?.testedDate) {
-      const date = toDate(labSnapshot.testedDate);
-      if (date) latestDates.push(date);
-    }
 
     const riskResult = computeRiskScore(signals);
     const riskScore = riskResult.score;
     const riskLevel = buildRiskLevel(riskScore);
     const vaidyaScore = computeVaidyaScore(riskScore, signals);
     const confidenceScore = computeConfidence(signals, latestDates);
+
+    const buildList = (values: Array<string | undefined | null>) =>
+      values.filter(Boolean).join(", ");
+
+    const vitalsSection = vitalsSnapshot
+      ? `Latest vitals on ${formatDate(vitalsSnapshot.recordedAt) ?? "recent date"}: BP ${
+          typeof vitalsSnapshot.systolicBp === "number" &&
+          typeof vitalsSnapshot.diastolicBp === "number"
+            ? `${vitalsSnapshot.systolicBp}/${vitalsSnapshot.diastolicBp} mmHg`
+            : "N/A"
+        }, HR ${vitalsSnapshot.heartRate ?? "N/A"} bpm, Glucose ${
+          vitalsSnapshot.glucoseLevel ?? "N/A"
+        } mg/dL, BMI ${vitalsSnapshot.bmi ?? "N/A"}.`
+      : "No recent vitals recorded.";
+
+    const symptomsSection = symptomsSnapshot
+      ? `Latest symptoms on ${formatDate(symptomsSnapshot.loggedAt) ?? "recent date"}: ${
+          symptomsSnapshot.symptomList?.length
+            ? symptomsSnapshot.symptomList.join(", ")
+            : "No symptom list provided"
+        }. Severity ${
+          symptomsSnapshot.severity ?? "unknown"
+        }, Duration ${symptomsSnapshot.durationDays ?? "unknown"} days.`
+      : "No recent symptoms recorded.";
+
+    const recordsSection = recentMedicalRecords.length
+      ? `Recent records: ${recentMedicalRecords
+          .map(
+            (record) =>
+              `${record.title ?? "Record"} (${record.recordDate ? formatDate(record.recordDate) : "date N/A"})`,
+          )
+          .join("; ")}.`
+      : "No recent medical records available.";
+
+    const medicationsSection = recentMedications.length
+      ? `Medications on file: ${recentMedications
+          .map((item) => buildList([item.medicineName, item.dosage]))
+          .filter(Boolean)
+          .join("; ")}.`
+      : "No medications recorded.";
+
+    const allergiesSection = recentAllergies.length
+      ? `Allergies: ${recentAllergies
+          .map((allergy) =>
+            buildList([
+              allergy.allergen,
+              allergy.severity,
+              allergy.reaction,
+              allergy.status,
+            ]),
+          )
+          .filter(Boolean)
+          .join("; ")}.`
+      : "No allergies recorded.";
+
+    const immunizationsSection = recentImmunizations.length
+      ? `Immunizations: ${recentImmunizations
+          .map((immunization) =>
+            buildList([
+              immunization.vaccineName,
+              immunization.date ? formatDate(immunization.date) : undefined,
+              immunization.nextDue ? `Next due ${formatDate(immunization.nextDue)}` : undefined,
+            ]),
+          )
+          .filter(Boolean)
+          .join("; ")}.`
+      : "No immunizations recorded.";
+
+    const analysisSnapshot: AnalysisSnapshot | null = analysisRequested
+      ? {
+          demographics: {
+            age,
+            gender: userData?.gender,
+            bloodGroup: userData?.bloodGroup,
+            heightCm: userData?.heightCm,
+            weightKg: userData?.weightKg,
+          },
+          vitals: vitalsSnapshot
+            ? {
+                recordedAt: formatDate(vitalsSnapshot.recordedAt),
+                systolicBp: vitalsSnapshot.systolicBp,
+                diastolicBp: vitalsSnapshot.diastolicBp,
+                glucoseLevel: vitalsSnapshot.glucoseLevel,
+                heartRate: vitalsSnapshot.heartRate,
+                bmi: vitalsSnapshot.bmi,
+                weight: vitalsSnapshot.weight ?? userData?.weightKg,
+                height: vitalsSnapshot.height ?? userData?.heightCm,
+              }
+            : undefined,
+          symptoms: symptomsSnapshot
+            ? {
+                loggedAt: formatDate(symptomsSnapshot.loggedAt),
+                severity: symptomsSnapshot.severity,
+                durationDays: symptomsSnapshot.durationDays,
+                symptomList: symptomsSnapshot.symptomList ?? [],
+              }
+            : undefined,
+          medications: recentMedications.map((item) => ({
+            name: item.medicineName,
+            dosage: item.dosage,
+            frequency: item.frequency,
+            purpose: item.purpose,
+            diagnosis: item.diagnosis,
+            disease: item.disease,
+            startDate: formatDate(item.startDate),
+            endDate: formatDate(item.endDate),
+          })),
+          allergies: recentAllergies.map((allergy) => ({
+            allergen: allergy.allergen,
+            type: allergy.type,
+            severity: allergy.severity,
+            reaction: allergy.reaction,
+            status: allergy.status,
+            recordedAt: formatDate(allergy.recordedAt),
+          })),
+          immunizations: recentImmunizations.map((immunization) => ({
+            vaccineName: immunization.vaccineName,
+            date: formatDate(immunization.date),
+            doseNumber: immunization.doseNumber,
+            nextDue: formatDate(immunization.nextDue),
+          })),
+          medicalRecords: recentMedicalRecords.map((record) => ({
+            title: record.title,
+            recordType: record.recordType,
+            category: record.category,
+            provider: record.provider,
+            recordDate: formatDate(record.recordDate),
+            diagnosis: record.diagnosis,
+            status: record.status,
+          })),
+          medicalFiles: recentMedicalFiles.map((file) => ({
+            name: file.name,
+            type: file.type,
+            uploadedAt: formatDate(file.uploadedAt),
+          })),
+        }
+      : null;
+
+    const demographics = analysisRequested
+      ? {
+          name: userData?.fullName,
+          age,
+          gender: userData?.gender,
+          bloodGroup: userData?.bloodGroup,
+          heightCm: userData?.heightCm,
+          weightKg: userData?.weightKg,
+        }
+      : undefined;
+
+    const vitalsSnapshotForReport = analysisRequested && vitalsSnapshot
+      ? {
+          recordedAt: toDate(vitalsSnapshot.recordedAt),
+          systolicBp: vitalsSnapshot.systolicBp,
+          diastolicBp: vitalsSnapshot.diastolicBp,
+          glucoseLevel: vitalsSnapshot.glucoseLevel,
+          heartRate: vitalsSnapshot.heartRate,
+          bmi: vitalsSnapshot.bmi,
+          weight: vitalsSnapshot.weight ?? userData?.weightKg,
+          height: vitalsSnapshot.height ?? userData?.heightCm,
+        }
+      : undefined;
+
+    const dataGaps = analysisRequested
+      ? [
+          !vitalsSnapshot ? "No recent vitals recorded." : null,
+          !symptomsSnapshot ? "No recent symptoms logged." : null,
+          !recentMedicalRecords.length ? "No recent medical records." : null,
+          !recentMedications.length ? "No medications on file." : null,
+          !recentAllergies.length ? "No allergies listed." : null,
+          !recentImmunizations.length ? "No immunizations listed." : null,
+        ].filter((gap): gap is string => Boolean(gap))
+      : [];
+
+    const fullAnalysisPrompt = analysisRequested && analysisSnapshot
+      ? buildFullAnalysisPrompt({
+          riskScore,
+          riskLevel,
+          vaidyaScore,
+          confidenceScore,
+          factors: riskResult.factors,
+          snapshot: analysisSnapshot,
+          notes,
+        })
+      : null;
+    const aiFullAnalysis =
+      analysisRequested && fullAnalysisPrompt
+        ? await generateFullAnalysis(fullAnalysisPrompt)
+        : null;
+
+    const analysis = analysisRequested
+      ? {
+          summary:
+            aiFullAnalysis?.summary ??
+            `Overall risk is ${riskLevel} with a score of ${riskScore}.`,
+          demographics,
+          vitalsSnapshot: vitalsSnapshotForReport,
+          keyFindings:
+            aiFullAnalysis?.key_findings?.map((finding) => ({
+              title: finding.title,
+              detail: finding.detail,
+              priority: normalizePriority(finding.priority),
+            })) ??
+            buildRuleBasedInsights(signals, riskLevel).map((insight) => ({
+              title: insight.title,
+              detail: insight.description,
+              priority: normalizePriority(insight.priority),
+            })),
+          sections: {
+            vitals: aiFullAnalysis?.sections?.vitals ?? vitalsSection,
+            symptoms: aiFullAnalysis?.sections?.symptoms ?? symptomsSection,
+            records: aiFullAnalysis?.sections?.records ?? recordsSection,
+            medications: aiFullAnalysis?.sections?.medications ?? medicationsSection,
+            allergies: aiFullAnalysis?.sections?.allergies ?? allergiesSection,
+            immunizations: aiFullAnalysis?.sections?.immunizations ?? immunizationsSection,
+          },
+          dataGaps: aiFullAnalysis?.data_gaps?.length ? aiFullAnalysis.data_gaps : dataGaps,
+          recommendations: aiFullAnalysis?.recommendations ?? [],
+          nextSteps: aiFullAnalysis?.next_steps ?? [],
+          generatedAt: new Date(),
+        }
+      : undefined;
 
     const insightLimit = clamp(maxInsights ?? 4, 1, 8);
     const prompt = buildRiskPrompt({
@@ -979,6 +1425,7 @@ export class RiskAssessmentService {
       riskScore,
       vaidyaScore,
       assessmentDate: new Date(),
+      ...(analysis ? { analysis } : {}),
     });
 
     const riskId = String(riskAssessment._id);
@@ -1036,7 +1483,6 @@ export class RiskAssessmentService {
       sources: {
         vitalsIds: vitalsList.map((vitals) => String(vitals._id)),
         symptomsIds: symptomsList.map((symptoms) => String(symptoms._id)),
-        labTestId: latestLabTest?._id ? String(latestLabTest._id) : undefined,
         medicationId: latestMedication?._id
           ? String(latestMedication._id)
           : undefined,

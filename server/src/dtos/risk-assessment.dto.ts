@@ -7,6 +7,7 @@ export const GenerateRiskAssessmentDto = z.object({
   notes: z.string().optional(),
   useLatest: z.coerce.boolean().optional(),
   includeAi: z.coerce.boolean().optional(),
+  includeAnalysis: z.coerce.boolean().optional(),
   reportId: z.string().optional(),
   force: z.coerce.boolean().optional(),
 });

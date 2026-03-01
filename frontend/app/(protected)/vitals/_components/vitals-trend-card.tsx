@@ -11,12 +11,6 @@ import type { VitalsTrendPoint } from "@/lib/definition";
 
 const PRIMARY = "#1F7AE0";
 
-const lightColors = {
-  heartRate: PRIMARY,
-  systolic: PRIMARY,
-  glucose: PRIMARY,
-};
-
 type VitalsTrendCardProps = {
   data: VitalsTrendPoint[];
   stats?: { label: string; value: string; note: string }[];
@@ -24,16 +18,18 @@ type VitalsTrendCardProps = {
 
 export function VitalsTrendCard({ data, stats = [] }: VitalsTrendCardProps) {
   return (
-    <Card className="rounded-2xl border-slate-200/80 bg-white shadow-sm">
-      <CardHeader className="flex flex-col gap-2 pb-3 md:flex-row md:items-center md:justify-between">
-        <CardTitle className="text-base font-semibold text-slate-900">Trend Overview</CardTitle>
+    <Card className="rounded-2xl border-slate-200/80 bg-white shadow-sm ring-1 ring-primary/5">
+      <CardHeader className="flex flex-col gap-1.5 pb-2 md:flex-row md:items-center md:justify-between">
+        <CardTitle className="text-base font-semibold text-slate-900">
+          Trend Overview
+        </CardTitle>
         <CardDescription className="text-sm text-slate-500">
           Heart rate, blood pressure &amp; glucose from oldest to latest readings.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4 pt-0">
+      <CardContent className="space-y-0 pt-0">
         <ChartContainer
-          className="h-48 w-full"
+          className="h-40 w-full md:h-44"
           config={{
             heartRate: { label: "Heart Rate", color: PRIMARY },
             systolic: { label: "Blood Pressure (systolic)", color: PRIMARY },
@@ -120,15 +116,17 @@ export function VitalsTrendCard({ data, stats = [] }: VitalsTrendCardProps) {
         </ChartContainer>
 
         {stats.length ? (
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-2.5 sm:grid-cols-3">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-2xl border border-slate-200/80 bg-white px-4 py-3"
+                className="rounded-2xl border border-slate-200/80 bg-white px-3 py-1.5"
               >
-                <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{stat.label}</p>
-                <p className="mt-1.5 text-xl font-semibold text-slate-900">{stat.value}</p>
-                <p className="mt-1 text-xs font-medium text-[#1F7AE0]">{stat.note}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                  {stat.label}
+                </p>
+                <p className="mt-0.5 text-base font-semibold text-slate-900">{stat.value}</p>
+                <p className="text-[10px] font-medium text-primary/80">{stat.note}</p>
               </div>
             ))}
           </div>

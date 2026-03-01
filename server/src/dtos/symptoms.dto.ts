@@ -1,9 +1,7 @@
 import z from "zod";
 import { SymptomsSchema } from "../types/symptoms.types";
 
-export const CreateSymptomsDto = SymptomsSchema.omit({ userId: true }).extend({
-  recordId: z.string().optional(),
-});
+export const CreateSymptomsDto = SymptomsSchema.omit({ userId: true });
 
 export type CreateSymptomsDto = z.infer<typeof CreateSymptomsDto>;
 
