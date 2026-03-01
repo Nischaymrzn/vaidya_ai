@@ -59,16 +59,71 @@ export default function BrainTumorPredictionPage() {
 
   const level = score >= 60 ? "High" : score >= 35 ? "Moderate" : "Low"
 
-  const reportLines = [
-    `Risk score: ${score}% (${level})`,
-    `Headaches: ${signals.headache ? "Yes" : "No"}`,
-    `Vision changes: ${signals.vision ? "Yes" : "No"}`,
-    `Dizziness: ${signals.dizziness ? "Yes" : "No"}`,
-    `Seizures: ${signals.seizures ? "Yes" : "No"}`,
-    `Age group: ${ageGroup}`,
-    `Symptom severity: ${severity}`,
-    `MRI uploaded: ${file ? "Yes" : "No"}`,
-    "Summary: Monitor neurological symptoms and follow clinical guidance.",
+  const reportMetrics = [
+    {
+      investigation: "Predicted brain tumor risk score",
+      result: analysisReady ? `${score}` : "N/A",
+      reference: "<35 low | 35-59 moderate | >=60 high",
+      status: analysisReady ? level : "Pending",
+      unit: "%",
+    },
+    {
+      investigation: "Persistent headaches",
+      result: signals.headache ? "Present" : "Absent",
+      reference: "Clinical symptom",
+      status: signals.headache ? "Positive" : "Negative",
+      unit: "",
+    },
+    {
+      investigation: "Vision changes",
+      result: signals.vision ? "Present" : "Absent",
+      reference: "Clinical symptom",
+      status: signals.vision ? "Positive" : "Negative",
+      unit: "",
+    },
+    {
+      investigation: "Dizziness / seizures",
+      result: signals.dizziness || signals.seizures ? "Present" : "Absent",
+      reference: "Clinical symptom",
+      status: signals.dizziness || signals.seizures ? "Positive" : "Negative",
+      unit: "",
+    },
+    {
+      investigation: "Age group",
+      result: ageGroup,
+      reference: "Risk context",
+      status: "Context",
+      unit: "",
+    },
+    {
+      investigation: "MRI scan uploaded",
+      result: file ? "Yes" : "No",
+      reference: "Required for scan review",
+      status: file ? "Available" : "Missing",
+      unit: "",
+    },
+  ]
+
+  const reportComments = [
+    analysisReady
+      ? `${level} neurological risk generated from symptom + scan signals.`
+      : "Analysis pending. Upload scan and run the model to generate interpretation.",
+    "This report supports screening and should be correlated with neurologist guidance.",
+  ]
+
+  const reportFindings = analysisReady
+    ? [
+      `Risk score is ${score}% (${level}).`,
+      `Symptom profile: headache=${signals.headache ? "yes" : "no"}, vision=${signals.vision ? "yes" : "no"}, dizziness=${signals.dizziness ? "yes" : "no"}, seizures=${signals.seizures ? "yes" : "no"}.`,
+      `Age group is ${ageGroup} and severity is ${severity}.`,
+      `MRI availability: ${file ? "uploaded" : "not uploaded"}.`,
+    ]
+    : ["Awaiting analysis run to generate findings."]
+
+  const reportRecommendations = [
+    "Review neurological symptoms with a clinician if risk is moderate/high.",
+    "Upload follow-up MRI scans to compare progression.",
+    "Maintain consistent symptom logging for trend analysis.",
   ]
 
   return (
@@ -77,10 +132,7 @@ export default function BrainTumorPredictionPage() {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Brain className="h-4 w-4" />
-                Neuro imaging model
-              </div>
+
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                 Brain Tumor Prediction
               </h1>
@@ -88,7 +140,6 @@ export default function BrainTumorPredictionPage() {
                 Upload MRI scans and track neurological signals for AI-based risk estimation.
               </p>
             </div>
-            <Badge className="bg-indigo-100 text-indigo-700">MRI workflow</Badge>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,0.55fr)_minmax(0,0.45fr)]">
@@ -215,7 +266,22 @@ export default function BrainTumorPredictionPage() {
                   <ReportDownloadButton
                     title="Brain Tumor Risk Report"
                     filename="brain-tumor-risk-report.pdf"
-                    lines={reportLines}
+                    patient={{
+                      name: "Member",
+                      age: ageGroup,
+                      sex: "N/A",
+                      pid: "BRAIN-001",
+                    }}
+                    meta={{
+                      module: "Brain Tumor Prediction",
+                      referredBy: "Vaidya AI",
+                      collectedAt: new Date().toLocaleDateString("en-US"),
+                    }}
+                    metrics={reportMetrics}
+                    comments={reportComments}
+                    findings={reportFindings}
+                    recommendations={reportRecommendations}
+                    notes={notes.trim() ? [notes.trim()] : []}
                     disabled={!analysisReady}
                     className="w-full rounded-full"
                   />

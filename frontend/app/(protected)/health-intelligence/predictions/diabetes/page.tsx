@@ -56,14 +56,72 @@ export default function DiabetesPredictionPage() {
 
   const level = score >= 60 ? "High" : score >= 35 ? "Moderate" : "Low"
 
-  const reportLines = [
-    `Risk score: ${score}% (${level})`,
-    `Glucose: ${form.glucose || "N/A"} mg/dL`,
-    `HbA1c: ${form.hba1c || "N/A"} %`,
-    `BMI: ${form.bmi || "N/A"}`,
-    `Blood pressure: ${form.bloodPressure || "N/A"} mmHg`,
-    `Family history: ${form.familyHistory}`,
-    "Summary: Consistent monitoring and updated lab records recommended.",
+  const reportMetrics = [
+    {
+      investigation: "Predicted diabetes risk score",
+      result: analysisReady ? `${score}` : "N/A",
+      reference: "<35 low | 35-59 moderate | >=60 high",
+      status: analysisReady ? level : "Pending",
+      unit: "%",
+    },
+    {
+      investigation: "Fasting glucose",
+      result: form.glucose || "N/A",
+      reference: "70 - 99",
+      status: (Number(form.glucose) || 0) > 110 ? "Elevated" : "Within range",
+      unit: "mg/dL",
+    },
+    {
+      investigation: "HbA1c",
+      result: form.hba1c || "N/A",
+      reference: "< 5.7",
+      status: (Number(form.hba1c) || 0) >= 5.7 ? "Elevated" : "Within range",
+      unit: "%",
+    },
+    {
+      investigation: "BMI",
+      result: form.bmi || "N/A",
+      reference: "18.5 - 24.9",
+      status: (Number(form.bmi) || 0) > 25 ? "Watch" : "Within range",
+      unit: "",
+    },
+    {
+      investigation: "Blood pressure (systolic)",
+      result: form.bloodPressure || "N/A",
+      reference: "90 - 120",
+      status: (Number(form.bloodPressure) || 0) > 130 ? "Elevated" : "Within range",
+      unit: "mmHg",
+    },
+    {
+      investigation: "Family history",
+      result: form.familyHistory === "yes" ? "Present" : "Absent",
+      reference: "N/A",
+      status: form.familyHistory === "yes" ? "Risk factor" : "Low impact",
+      unit: "",
+    },
+  ]
+
+  const reportComments = [
+    `Overall clinical interpretation: ${analysisReady
+      ? `${level} diabetes risk based on current metabolic markers.`
+      : "Analysis pending. Run the model to generate interpretation."
+    }`,
+    "This report is AI-assisted and should be validated with clinician-guided lab review.",
+  ]
+
+  const reportFindings = analysisReady
+    ? [
+      `Risk score is ${score}% (${level}).`,
+      `Glucose is ${form.glucose || "N/A"} mg/dL and HbA1c is ${form.hba1c || "N/A"}%.`,
+      `BMI is ${form.bmi || "N/A"} with systolic BP ${form.bloodPressure || "N/A"} mmHg.`,
+      `Family history marker: ${form.familyHistory === "yes" ? "present" : "absent"}.`,
+    ]
+    : ["Awaiting analysis run to generate findings."]
+
+  const reportRecommendations = [
+    "Continue periodic glucose and HbA1c monitoring.",
+    "Maintain blood pressure and weight tracking weekly.",
+    "Upload latest pathology/lab reports for stronger model confidence.",
   ]
 
   return (
@@ -72,10 +130,7 @@ export default function DiabetesPredictionPage() {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Brain className="h-4 w-4" />
-                AI Prediction Suite
-              </div>
+
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                 Diabetes Prediction
               </h1>
@@ -83,7 +138,6 @@ export default function DiabetesPredictionPage() {
                 Fast risk estimation based on metabolic markers and lifestyle signals.
               </p>
             </div>
-            <Badge className="bg-sky-100 text-sky-700">Clinical preview</Badge>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,0.55fr)_minmax(0,0.45fr)]">
@@ -197,7 +251,21 @@ export default function DiabetesPredictionPage() {
                   <ReportDownloadButton
                     title="Diabetes Risk Report"
                     filename="diabetes-risk-report.pdf"
-                    lines={reportLines}
+                    patient={{
+                      name: "Member",
+                      age: form.age || "N/A",
+                      sex: "N/A",
+                      pid: "DIA-001",
+                    }}
+                    meta={{
+                      module: "Diabetes Prediction",
+                      referredBy: "Vaidya AI",
+                      collectedAt: new Date().toLocaleDateString("en-US"),
+                    }}
+                    metrics={reportMetrics}
+                    comments={reportComments}
+                    findings={reportFindings}
+                    recommendations={reportRecommendations}
                     disabled={!analysisReady}
                     className="w-full rounded-full"
                   />
