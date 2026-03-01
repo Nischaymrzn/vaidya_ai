@@ -175,7 +175,7 @@ export default function SymptomsPage() {
   }, [symptoms]);
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-background">
       <div className="w-full px-4 py-5 sm:px-6 lg:px-8">
         <div className="space-y-4">
           <SymptomsHeader
@@ -189,12 +189,12 @@ export default function SymptomsPage() {
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)]">
             <div className="min-w-0 space-y-4">
-              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+              <Card className="rounded-3xl border border-border bg-card shadow-sm">
                 <CardHeader className="space-y-0.5 pb-1.5">
-                  <CardTitle className="text-base font-semibold text-slate-900">
+                  <CardTitle className="text-base font-semibold text-foreground">
                     Symptom snapshot
                   </CardTitle>
-                  <CardDescription className="text-sm text-slate-500">
+                  <CardDescription className="text-sm text-muted-foreground">
                     A quick overview of your tracked symptoms.
                   </CardDescription>
                 </CardHeader>
@@ -203,19 +203,19 @@ export default function SymptomsPage() {
                     {overviewStats.map((stat) => (
                       <div
                         key={stat.label}
-                        className="rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2.5"
+                        className="rounded-2xl border border-border bg-muted/40 px-3 py-2.5"
                       >
-                        <p className="text-[11px] uppercase tracking-wider text-slate-500">
+                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
                           {stat.label}
                         </p>
-                        <p className="mt-0.5 text-lg font-semibold text-slate-900">
+                        <p className="mt-0.5 text-lg font-semibold text-foreground">
                           {stat.value}
                         </p>
-                        <p className="text-[11px] text-slate-500">{stat.detail}</p>
+                        <p className="text-[11px] text-muted-foreground">{stat.detail}</p>
                       </div>
                     ))}
                   </div>
-                  <div className="rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                  <div className="rounded-2xl border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                     {totalSymptoms
                       ? "Keep entries consistent to improve symptom trend accuracy."
                       : "Start logging symptoms to build your trend history."}
@@ -239,27 +239,24 @@ export default function SymptomsPage() {
 
             <div className="min-w-0 space-y-3">
               <SymptomsAnomaliesCard />
-              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+              <Card className="rounded-3xl border border-border bg-card shadow-sm">
                 <CardContent className="space-y-2.5 p-3.5">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-amber-50 text-amber-700">
-                      <AlertTriangle className="h-4 w-4" />
-                    </div>
+                  <div className="flex items-center gap-2 px-2">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">Feeling unsure?</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-sm font-semibold text-foreground">Feeling unsure?</p>
+                      <p className="text-xs text-muted-foreground">
                         Chat with Vaidya.ai for gentle guidance.
                       </p>
                     </div>
                   </div>
                   {ongoingAlert ? (
-                    <div className="rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                      You logged <span className="font-semibold text-slate-900">{ongoingAlert.symptomLabel}</span>{" "}
+                    <div className="rounded-2xl border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                      You logged <span className="font-semibold text-foreground">{ongoingAlert.symptomLabel}</span>{" "}
                       {ongoingAlert.daysAgo} days ago and it is still marked ongoing. Update the status
                       to keep recovery tracking accurate.
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                    <div className="rounded-2xl border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                       No ongoing symptoms flagged right now. Keep logging for clarity.
                     </div>
                   )}

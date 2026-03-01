@@ -64,42 +64,42 @@ type VitalFormState = {
 };
 
 const statusStyles: Record<string, string> = {
-  Normal: "bg-emerald-50 text-emerald-700",
-  Elevated: "bg-amber-50 text-amber-700",
-  Borderline: "bg-amber-50 text-amber-700",
-  High: "bg-rose-50 text-rose-700",
-  Low: "bg-sky-50 text-sky-700",
-  "No data": "bg-slate-100 text-slate-500",
+  Normal: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
+  Elevated: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
+  Borderline: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
+  High: "bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300",
+  Low: "bg-sky-100 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300",
+  "No data": "bg-muted text-muted-foreground",
 };
 
 const insightCopy: Record<string, { tone: string; message: string; title: string }> = {
   Normal: {
-    tone: "bg-emerald-50 text-emerald-700",
+    tone: "border-emerald-200/70 bg-emerald-50 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200",
     title: "Optimal",
     message: "Within your typical range. Keep a steady routine.",
   },
   Elevated: {
-    tone: "bg-amber-50 text-amber-700",
+    tone: "border-amber-200/70 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200",
     title: "Slightly elevated",
     message: "Consider light activity and hydration. Re-check in a few hours.",
   },
   Borderline: {
-    tone: "bg-amber-50 text-amber-700",
+    tone: "border-amber-200/70 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200",
     title: "Borderline",
     message: "Near the upper range. Recheck soon and log symptoms.",
   },
   High: {
-    tone: "bg-rose-50 text-rose-700",
+    tone: "border-rose-200/70 bg-rose-50 text-rose-800 dark:border-rose-900/70 dark:bg-rose-950/30 dark:text-rose-200",
     title: "High",
     message: "Above range. Recheck and note symptoms.",
   },
   Low: {
-    tone: "bg-sky-50 text-sky-700",
+    tone: "border-sky-200/70 bg-sky-50 text-sky-800 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-200",
     title: "Low",
     message: "Below range. Recheck and rest.",
   },
   "No data": {
-    tone: "bg-slate-100 text-slate-500",
+    tone: "border-border bg-muted/60 text-muted-foreground",
     title: "No data",
     message: "Add a reading to see insights.",
   },
@@ -194,13 +194,13 @@ function HeartValueTag({
 }) {
   return (
     <div
-      className={`absolute min-w-[140px] rounded-xl bg-white/95 px-4 py-2.5 text-xs shadow-sm ring-1 ring-slate-200/70 backdrop-blur ${side === "right" ? "text-right" : ""
+      className={`absolute min-w-[140px] rounded-xl border border-border bg-background/95 px-4 py-2.5 text-xs shadow-sm backdrop-blur ${side === "right" ? "text-right" : ""
         } ${className ?? ""}`}
     >
-      <p className="text-[11px] font-medium text-slate-500">{label}</p>
-      <p className="text-base font-semibold text-slate-900">
+      <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+      <p className="text-base font-semibold text-foreground">
         {value}
-        {unit ? <span className="ml-1 text-[11px] font-medium text-slate-500">{unit}</span> : null}
+        {unit ? <span className="ml-1 text-[11px] font-medium text-muted-foreground">{unit}</span> : null}
       </p>
     </div>
   );
@@ -328,7 +328,7 @@ function InsightCard({ card, trend }: { card?: VitalsSummaryCard; trend: VitalsT
   const percentLabel = insightLabelByStatus[status] ?? "STATUS";
   const PRIMARY = "#1F7AE0";
   const ringStyle = {
-    background: `conic-gradient(${PRIMARY} ${percent * 3.6}deg, #e5e7eb 0deg)`,
+    background: `conic-gradient(${PRIMARY} ${percent * 3.6}deg, hsl(var(--muted)) 0deg)`,
   };
   const dataKey =
     card?.key === "bloodPressure"
@@ -342,12 +342,12 @@ function InsightCard({ card, trend }: { card?: VitalsSummaryCard; trend: VitalsT
   }));
 
   return (
-    <Card className="h-full rounded-2xl border-slate-200/80 bg-white shadow-sm">
+    <Card className="h-full rounded-2xl border-border bg-card shadow-sm">
       <CardContent className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-base font-semibold text-slate-900">Vital Insights</p>
-            <p className="text-sm text-slate-500">
+            <p className="text-base font-semibold text-foreground">Vital Insights</p>
+            <p className="text-sm text-muted-foreground">
               Major risk: {card?.label ?? "No data"}
             </p>
           </div>
@@ -357,23 +357,23 @@ function InsightCard({ card, trend }: { card?: VitalsSummaryCard; trend: VitalsT
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="text-2xl font-semibold text-slate-900">
+          <div className="text-2xl font-semibold text-foreground">
             {card?.value ?? "--"}
-            {card?.unit ? <span className="ml-1 text-sm text-slate-500">{card.unit}</span> : null}
+            {card?.unit ? <span className="ml-1 text-sm text-muted-foreground">{card.unit}</span> : null}
           </div>
-          <p className="text-sm text-slate-500">{formatUpdated(card?.updatedAt)}</p>
+          <p className="text-sm text-muted-foreground">{formatUpdated(card?.updatedAt)}</p>
         </div>
 
         <div className="flex items-center justify-center py-2">
-          <div className="relative h-36 w-36 rounded-full p-2.5" style={ringStyle}>
-            <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-white">
-              <p className="text-2xl font-semibold text-slate-900">{percent}%</p>
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{percentLabel}</p>
+          <div className="relative h-36 w-36 rounded-full p-3.5" style={ringStyle}>
+            <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-card">
+              <p className="text-2xl font-semibold text-foreground">{percent}%</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{percentLabel}</p>
             </div>
           </div>
         </div>
 
-        <div className={`rounded-2xl border px-3 py-2.5 text-xs ${copy.tone}`}>
+        <div className={`rounded-2xl border px-4 py-2.5 text-xs ${copy.tone}`}>
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4" />
             <div>
@@ -385,9 +385,9 @@ function InsightCard({ card, trend }: { card?: VitalsSummaryCard; trend: VitalsT
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-900">History</p>
+            <p className="text-sm font-semibold text-foreground">History</p>
           </div>
-          <div className="rounded-2xl border border-slate-200/70 bg-white/80 px-3 py-3">
+          <div className="rounded-2xl border border-border bg-muted/20 px-3 py-3">
             <ChartContainer
               className="h-24 w-full"
               config={{ value: { label: card?.label ?? "Vital", color: insightLineColor } }}
@@ -402,14 +402,14 @@ function InsightCard({ card, trend }: { card?: VitalsSummaryCard; trend: VitalsT
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
-                  stroke="#e2e8f0"
+                  stroke="hsl(var(--border))"
                   strokeOpacity={0.5}
                 />
                 <XAxis
                   dataKey="label"
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                   tickMargin={8}
                 />
                 <YAxis hide />
@@ -428,7 +428,7 @@ function InsightCard({ card, trend }: { card?: VitalsSummaryCard; trend: VitalsT
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-sm text-slate-500">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>Change: {delta || "—"}</span>
           <span>Based on latest entry</span>
         </div>
@@ -634,12 +634,12 @@ export function VitalsClient({ summary, error }: VitalsClientProps) {
               <VitalsTrendCard data={trend} stats={trendStats} />
             </div>
 
-            <Card className="rounded-3xl border-primary/20 bg-gradient-to-br from-primary/5 via-white to-white shadow-sm">
+            <Card className="rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-card to-card shadow-sm dark:from-primary/20">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <CardTitle className="text-base font-semibold text-slate-900">Your Heart Statistic</CardTitle>
-                    <CardDescription className="text-sm text-slate-500">
+                    <CardTitle className="text-base font-semibold text-foreground">Your Heart Statistic</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
                       Snapshot of your latest heart-related vitals.
                     </CardDescription>
                   </div>
@@ -649,7 +649,7 @@ export function VitalsClient({ summary, error }: VitalsClientProps) {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
-                <div className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white via-slate-50 to-blue-50/40 px-3 py-3 sm:px-4">
+                <div className="rounded-2xl border border-border bg-gradient-to-br from-background via-muted/30 to-muted/60 px-3 py-3 sm:px-4">
                   <div className="relative mx-auto h-52 w-full max-w-[520px] sm:h-64">
                     <img
                       src="/heart.svg"
@@ -693,12 +693,12 @@ export function VitalsClient({ summary, error }: VitalsClientProps) {
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="rounded-2xl border border-slate-200/70 bg-slate-50/60 px-3 py-2"
+                      className="rounded-2xl border border-border bg-muted/40 px-3 py-2"
                     >
-                      <p className="text-xs font-semibold text-slate-500">{item.label}</p>
-                      <p className="mt-1 text-lg font-semibold text-slate-900">
+                      <p className="text-xs font-semibold text-muted-foreground">{item.label}</p>
+                      <p className="mt-1 text-lg font-semibold text-foreground">
                         {item.value}
-                        <span className="ml-1 text-xs font-medium text-slate-500">bpm</span>
+                        <span className="ml-1 text-xs font-medium text-muted-foreground">bpm</span>
                       </p>
                     </div>
                   ))}
