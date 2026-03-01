@@ -23,15 +23,15 @@ export function VaidyaScoreCard({ score, trend }: VaidyaScoreCardProps) {
     : "No data"
 
   return (
-    <Card className="relative min-h-30 overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm pt-4">
+    <Card className="relative min-h-30 overflow-hidden rounded-2xl border-border bg-card shadow-sm pt-4">
       <CardContent className="relative z-10 flex flex-col gap-3 px-5 pb-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[url('/score_bg.svg')] bg-cover bg-center text-2xl font-semibold text-slate-900 shadow-sm">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[url('/score_bg.svg')] bg-cover bg-center text-2xl font-semibold text-foreground shadow-sm">
             {displayScore}
           </div>
           <div className="flex-1">
-            <p className="text-base font-semibold text-slate-900">VAIDYA Score</p>
-            <p className="mt-1 text-sm leading-relaxed text-slate-500">
+            <p className="text-base font-semibold text-foreground">VAIDYA Score</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               {hasScore
                 ? "Based on your data, we think your health status is above average"
                 : "Add vitals and symptoms to generate your score"}
