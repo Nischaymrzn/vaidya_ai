@@ -4,5 +4,6 @@ import { UserDataSchema } from "../types/user-data.types";
 export const UpdateUserDataDto = UserDataSchema.omit({
   userId: true,
   latestVitals: true,
+  vitals: true,
 }).partial();
 export type UpdateUserDataDto = z.infer<typeof UpdateUserDataDto>;

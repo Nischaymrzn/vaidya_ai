@@ -8,8 +8,10 @@ import { CreateUserDTO, loginUserDTO } from "../dtos/user.dto";
 import { UserRepository } from "../repositories/user.repository";
 import { env } from "../config/env";
 import { sendEmail } from "../utils/mailer";
+import { UserDataService } from "./user-data.service";
 
 const userRepository = new UserRepository();
+const userDataService = new UserDataService();
 
 export interface GoogleProfile {
   id: string;
@@ -33,6 +35,8 @@ export class UserServices {
       name,
       password: hashedPassword,
     });
+
+    await userDataService.ensureUserData(String(user._id));
 
     return {
       id: user._id,
@@ -177,6 +181,7 @@ export class UserServices {
       role: user.role,
     };
     const { accessToken, refreshToken } = GenerateTokens(payload);
+    await userDataService.ensureUserData(String(user._id));
     return { accessToken, refreshToken, user: safeUser };
   }
 

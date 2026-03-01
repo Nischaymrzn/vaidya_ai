@@ -21,6 +21,9 @@ export interface IUserRepository {
   getUserByEmail(email: string): Promise<UserDocument | null>;
   getUserByGoogleId(googleId: string): Promise<UserDocument | null>;
   getUserById(id: string): Promise<UserType | null>;
+  getUsersByIds(
+    ids: string[]
+  ): Promise<Array<{ _id: string; name?: string; email?: string }>>;
   getAllUsers(options?: PaginationParams): Promise<PaginatedResult<UserType>>;
   updateOneUser(id: string, data: Partial<UserType>): Promise<UserType | null>;
   deleteOneUser(id: string): Promise<boolean | null>;
@@ -61,6 +64,20 @@ export class UserRepository implements IUserRepository {
 
   async getUserById(id: string): Promise<UserDocument | null> {
     return User.findOne({ _id: id });
+  }
+
+  async getUsersByIds(
+    ids: string[]
+  ): Promise<Array<{ _id: string; name?: string; email?: string }>> {
+    if (!ids.length) return [];
+    const users = await User.find({ _id: { $in: ids } })
+      .select("name email")
+      .lean();
+    return users.map((user) => ({
+      _id: String(user._id),
+      name: user.name,
+      email: user.email,
+    }));
   }
 
   async getUserWithPasswordByEmail(

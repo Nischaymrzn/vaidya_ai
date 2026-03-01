@@ -5,8 +5,10 @@ import ApiError from "../exceptions/apiError";
 import { StatusCodes } from "http-status-codes";
 import errorMessages from "../constants/errorMessages";
 import { bcryptUtil } from "../utils/bcrypt";
+import { UserDataService } from "./user-data.service";
 
 const userRepository = new UserRepository();
+const userDataService = new UserDataService();
 
 export class AdminUserService {
   async createUser(data: CreateUserDTO) {
@@ -23,6 +25,7 @@ export class AdminUserService {
       name,
       password: hashedPassword,
     });
+    await userDataService.ensureUserData(String(user._id));
     return user;
   }
 
