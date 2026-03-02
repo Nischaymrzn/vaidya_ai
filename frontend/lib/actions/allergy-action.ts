@@ -10,9 +10,11 @@ export type ApiResponse<T = unknown> = {
   data?: T;
 };
 
-export async function getAllergies(): Promise<ApiResponse<TAllergy[]>> {
+export async function getAllergies(params?: {
+  userId?: string;
+}): Promise<ApiResponse<TAllergy[]>> {
   try {
-    const response = await api.get(API.ALLERGIES.LIST);
+    const response = await api.get(API.ALLERGIES.LIST(params));
     return {
       success: true,
       data: response.data.data || response.data,

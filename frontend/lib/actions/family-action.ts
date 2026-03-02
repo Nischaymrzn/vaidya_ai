@@ -68,6 +68,7 @@ export type FamilyGroupSummary = {
     _id: string;
     name: string;
     adminId: string;
+    score?: number | null;
     createdAt?: string | null;
     updatedAt?: string | null;
   };
@@ -77,6 +78,7 @@ export type FamilyGroupSummary = {
     role: "admin" | "member";
     relation?: string | null;
   };
+  familyScore?: number | null;
 };
 
 export async function getMyFamilyGroup(): Promise<ApiResponse<FamilyGroup>> {
