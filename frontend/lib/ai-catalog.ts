@@ -1,8 +1,4 @@
-export type AiModuleCategory =
-  | "Prediction"
-  | "Assistant"
-  | "Analysis"
-  | "Scan";
+export type AiModuleCategory = "Prediction" | "Assistant" | "Analysis" | "Scan";
 
 export type AiModuleCatalogItem = {
   id: string;
@@ -89,7 +85,8 @@ export const AI_MODULE_CATALOG: AiModuleCatalogItem[] = [
     scope: "Population Risk",
     clientPath: "/health-intelligence/risk-analysis",
     apiPath: "/risk-assessments/generate",
-    description: "Aggregates patient history and creates multi-factor risk analysis.",
+    description:
+      "Aggregates patient history and creates multi-factor risk analysis.",
     defaultVersion: "1.0.0",
     defaultActive: true,
   },
@@ -130,7 +127,7 @@ export const AI_DOCTOR_CATALOG: AiDoctorCatalogItem[] = [
       "Vital Review",
       "Risk Assessment",
     ],
-    image: "/doctor.png",
+    image: "/doctor_1.png",
     defaultActive: true,
   },
   {
@@ -145,7 +142,7 @@ export const AI_DOCTOR_CATALOG: AiDoctorCatalogItem[] = [
       "Cardiac Risk",
       "ECG Guidance",
     ],
-    image: "/doctor_2.webp",
+    image: "/doctor_2.jpg",
     defaultActive: true,
   },
   {
@@ -175,7 +172,7 @@ export const AI_DOCTOR_CATALOG: AiDoctorCatalogItem[] = [
       "Sleep Health",
       "Behavioral Insights",
     ],
-    image: "/doctor_2.webp",
+    image: "/doctor.png",
     defaultActive: true,
   },
   {
