@@ -132,7 +132,7 @@ export class AuthController {
       });
     }
 
-    const token = req.params.token as string;
+    const { token } = req.params as { token: string };
     await userServices.resetPassword(token, parsedData.data.newPassword);
 
     return res.json(
