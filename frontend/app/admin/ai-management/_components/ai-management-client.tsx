@@ -398,7 +398,6 @@ export function AiManagementClient() {
           <Card className="rounded-2xl border-slate-200/80 bg-white shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
                 Add AI module
               </CardTitle>
               <CardDescription>Register new module entries used by frontend and APIs.</CardDescription>
