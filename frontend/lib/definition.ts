@@ -9,6 +9,7 @@ export type TUser = {
   name: string;
   email: string;
   role: Role;
+  isPremium?: boolean;
   number?: string;
   profilePicture?: string;
   isEmailVerified?: boolean;
