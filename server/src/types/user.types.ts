@@ -13,14 +13,17 @@ export const UserSchema = z.object({
   isEmailVerified: z.coerce.boolean().default(false),
   role: z.enum(["admin", "user"]).default("user"),
   isActive: z.coerce.boolean().default(false),
+  isPremium: z.coerce.boolean().default(false),
   deletedAt: z.date(),
   profilePicture: z.string().optional(),
   googleId: z.string().optional(),
+  stripeCustomerId: z.string().optional(),
 });
 
 const User = UserSchema.pick({
   email: true,
   role: true,
+  isPremium: true,
 }).extend({
   id: z.string(),
 });
