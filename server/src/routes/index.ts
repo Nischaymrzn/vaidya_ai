@@ -21,6 +21,7 @@ import analyticsRouter from "./analytics.route";
 import dashboardRouter from "./dashboard.route";
 import predictionRouter from "./prediction.route";
 import familyGroupRouter from "./family-group.route";
+import paymentRouter from "./payment.route";
 
 const mainRouter = Router();
 
@@ -46,5 +47,6 @@ mainRouter.use("/analytics", analyticsRouter);
 mainRouter.use("/dashboard", dashboardRouter);
 mainRouter.use("/predict", predictionRouter);
 mainRouter.use("/family-groups", familyGroupRouter);
+mainRouter.use("/payments", paymentRouter);
 
 export default mainRouter;
