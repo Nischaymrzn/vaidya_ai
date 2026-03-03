@@ -1,4 +1,9 @@
-import { FamilyGroup, FamilyGroupDb, FamilyGroupDocument, FamilyMemberDb } from "../models/family-group.model";
+import {
+  FamilyGroup,
+  FamilyGroupDb,
+  FamilyGroupDocument,
+  FamilyMemberDb,
+} from "../models/family-group.model";
 
 export class FamilyGroupRepository {
   async create(data: Partial<FamilyGroupDb>): Promise<FamilyGroupDocument> {
@@ -30,7 +35,10 @@ export class FamilyGroupRepository {
     ).lean();
   }
 
-  async updateName(groupId: string, name: string): Promise<FamilyGroupDb | null> {
+  async updateName(
+    groupId: string,
+    name: string,
+  ): Promise<FamilyGroupDb | null> {
     return FamilyGroup.findByIdAndUpdate(
       groupId,
       { $set: { name } },
@@ -46,6 +54,17 @@ export class FamilyGroupRepository {
     return FamilyGroup.findOneAndUpdate(
       { _id: groupId, "members.userId": memberId },
       { $set: { "members.$.relation": relation } },
+      { new: true },
+    ).lean();
+  }
+
+  async updateScore(
+    groupId: string,
+    score: number,
+  ): Promise<FamilyGroupDb | null> {
+    return FamilyGroup.findByIdAndUpdate(
+      groupId,
+      { $set: { score } },
       { new: true },
     ).lean();
   }
