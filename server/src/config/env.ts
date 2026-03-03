@@ -39,6 +39,7 @@ export const env = {
   CLOUDINARY_FOLDER: process.env.CLOUDINARY_FOLDER ?? "vaidya",
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID ?? "",
   GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
   GEMINI_API_URL: process.env.GEMINI_API_URL ?? "",
   GROQ_API_KEY: process.env.GROQ_API_KEY ?? "",
@@ -46,4 +47,11 @@ export const env = {
   AI_CHAT_ENDPOINT:
     process.env.AI_CHAT_ENDPOINT ??
     "https://api.groq.com/openai/v1/chat/completions",
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? "",
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+  STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID ?? "",
+  STRIPE_TEST_AMOUNT: Number(process.env.STRIPE_TEST_AMOUNT ?? "499"),
+  STRIPE_CURRENCY: process.env.STRIPE_CURRENCY ?? "usd",
+  STRIPE_SUCCESS_URL: process.env.STRIPE_SUCCESS_URL ?? "",
+  STRIPE_CANCEL_URL: process.env.STRIPE_CANCEL_URL ?? "",
 };

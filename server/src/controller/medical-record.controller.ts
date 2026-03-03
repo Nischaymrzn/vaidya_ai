@@ -129,10 +129,7 @@ export class MedicalRecordController {
       }
 
       const recordId = req.params.id;
-      const record = await medicalRecordService.getRecordById(
-        userId,
-        recordId,
-      );
+      const record = await medicalRecordService.getRecordById(userId, recordId);
       return res.status(200).json({
         success: true,
         data: record,
@@ -157,10 +154,18 @@ export class MedicalRecordController {
 
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 10;
-      const result = await medicalRecordService.getAllRecords(userId, {
-        page,
-        limit,
-      });
+      const targetUserId =
+        typeof req.query.userId === "string" && req.query.userId.trim()
+          ? req.query.userId.trim()
+          : undefined;
+      const result = await medicalRecordService.getAllRecords(
+        userId,
+        {
+          page,
+          limit,
+        },
+        targetUserId,
+      );
       return res.status(200).json({
         success: true,
         data: result.data,
