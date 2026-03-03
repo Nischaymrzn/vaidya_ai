@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "jest --runInBand",
+    "test:unit": "jest --runInBand tests/unit",
+    "test:integration": "jest --runInBand tests/integration",
+    "test:coverage": "jest --runInBand --coverage"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +30,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "sharp": "^0.33.5",
+    "stripe": "^20.4.0",
     "tesseract.js": "^7.0.0",
     "ts-node": "^10.9.2",
     "uuid": "^13.0.0"
