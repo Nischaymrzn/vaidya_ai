@@ -19,9 +19,19 @@ const DEFAULT_INVITE_DAYS = 7;
 
 const toObjectId = (id: string) => new mongoose.Types.ObjectId(id);
 
-const isAdminMember = (group: { adminId: unknown; members?: Array<{ userId: unknown; role?: string }> }, userId: string) => {
+const isAdminMember = (
+  group: {
+    adminId: unknown;
+    members?: Array<{ userId: unknown; role?: string }>;
+  },
+  userId: string,
+) => {
   if (String(group.adminId) === userId) return true;
-  return Boolean(group.members?.some((member) => String(member.userId) === userId && member.role === "admin"));
+  return Boolean(
+    group.members?.some(
+      (member) => String(member.userId) === userId && member.role === "admin",
+    ),
+  );
 };
 
 const clamp = (value: number, min = 35, max = 95) =>
@@ -69,6 +79,15 @@ const deriveStatus = (score: number | null) => {
   return "stable";
 };
 
+const computeFamilyScore = (scores: Array<number | null | undefined>) => {
+  if (!scores.length) return 0;
+  const total = scores.reduce<number>(
+    (sum, score) => sum + (typeof score === "number" ? score : 0),
+    0,
+  );
+  return Math.max(0, Math.min(100, Math.round(total / scores.length)));
+};
+
 const computeAge = (dob?: Date | null) => {
   if (!dob) return null;
   const now = new Date();
@@ -80,34 +99,36 @@ const computeAge = (dob?: Date | null) => {
   return Math.max(0, age);
 };
 
-const coalesceNumber = (
-  value?: number | null,
-  fallback?: number | null,
-) => {
+const coalesceNumber = (value?: number | null, fallback?: number | null) => {
   if (typeof value === "number") return value;
   if (typeof fallback === "number") return fallback;
   return null;
 };
 
-const mapVitalsRecord = (record?: {
-  recordedAt?: Date;
-  createdAt?: Date;
-  systolicBp?: number | null;
-  diastolicBp?: number | null;
-  glucoseLevel?: number | null;
-  heartRate?: number | null;
-  weight?: number | null;
-  height?: number | null;
-  bmi?: number | null;
-} | null) => {
+const mapVitalsRecord = (
+  record?: {
+    recordedAt?: Date;
+    createdAt?: Date;
+    systolicBp?: number | null;
+    diastolicBp?: number | null;
+    glucoseLevel?: number | null;
+    heartRate?: number | null;
+    weight?: number | null;
+    height?: number | null;
+    bmi?: number | null;
+  } | null,
+) => {
   if (!record) return null;
   const recordedAt =
     record.recordedAt ?? (record as { createdAt?: Date }).createdAt ?? null;
   return {
     recordedAt,
-    systolicBp: typeof record.systolicBp === "number" ? record.systolicBp : null,
-    diastolicBp: typeof record.diastolicBp === "number" ? record.diastolicBp : null,
-    glucoseLevel: typeof record.glucoseLevel === "number" ? record.glucoseLevel : null,
+    systolicBp:
+      typeof record.systolicBp === "number" ? record.systolicBp : null,
+    diastolicBp:
+      typeof record.diastolicBp === "number" ? record.diastolicBp : null,
+    glucoseLevel:
+      typeof record.glucoseLevel === "number" ? record.glucoseLevel : null,
     heartRate: typeof record.heartRate === "number" ? record.heartRate : null,
     weight: typeof record.weight === "number" ? record.weight : null,
     height: typeof record.height === "number" ? record.height : null,
@@ -116,11 +137,70 @@ const mapVitalsRecord = (record?: {
 };
 
 export class FamilyGroupService {
+  private async refreshGroupScore(groupId: string) {
+    const group = await familyGroupRepository.findById(groupId);
+    if (!group) return 0;
+
+    const members = group.members ?? [];
+    const memberIds = members.map((member) => String(member.userId));
+    if (!memberIds.length) {
+      await familyGroupRepository.updateScore(groupId, 0);
+      return 0;
+    }
+
+    const [userData, vitalsLists] = await Promise.all([
+      userDataRepository.getByUserIds(memberIds),
+      Promise.all(
+        memberIds.map((memberId) => vitalsRepository.getAllForUser(memberId)),
+      ),
+    ]);
+    const userDataMap = new Map(
+      userData.map((item) => [String(item.userId), item]),
+    );
+
+    const memberScores = memberIds.map((memberId, index) => {
+      const records = vitalsLists[index] ?? [];
+      const latestRecord = records[0];
+      const data = userDataMap.get(memberId);
+      const fallbackVitals = data?.vitals ?? data?.latestVitals ?? null;
+      const latestVitals =
+        latestRecord || fallbackVitals
+          ? {
+              systolicBp: coalesceNumber(
+                latestRecord?.systolicBp,
+                fallbackVitals?.systolicBp,
+              ),
+              diastolicBp: coalesceNumber(
+                latestRecord?.diastolicBp,
+                fallbackVitals?.diastolicBp,
+              ),
+              glucoseLevel: coalesceNumber(
+                latestRecord?.glucoseLevel,
+                fallbackVitals?.glucoseLevel,
+              ),
+              heartRate: coalesceNumber(
+                latestRecord?.heartRate,
+                fallbackVitals?.heartRate,
+              ),
+              bmi: coalesceNumber(latestRecord?.bmi, fallbackVitals?.bmi),
+            }
+          : null;
+      return computeHealthScore(latestVitals);
+    });
+
+    const familyScore = computeFamilyScore(memberScores);
+    await familyGroupRepository.updateScore(groupId, familyScore);
+    return familyScore;
+  }
+
   async getFamilyGroupForUser(userId: string) {
     const group = await familyGroupRepository.findByMemberId(userId);
     if (!group) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Family group not found");
     }
+
+    await this.refreshGroupScore(String(group._id));
+
     return (
       (await familyGroupRepository.findByIdWithMembers(String(group._id))) ??
       group
@@ -146,15 +226,10 @@ export class FamilyGroupService {
       memberIds.map((memberId) => vitalsRepository.getAllForUser(memberId)),
     );
     const vitalsMap = new Map(
-      memberIds.map((memberId, index) => [
-        memberId,
-        vitalsLists[index] ?? [],
-      ]),
+      memberIds.map((memberId, index) => [memberId, vitalsLists[index] ?? []]),
     );
 
-    const userMap = new Map(
-      users.map((user) => [String(user._id), user]),
-    );
+    const userMap = new Map(users.map((user) => [String(user._id), user]));
     const userDataMap = new Map(
       userData.map((item) => [String(item.userId), item]),
     );
@@ -166,43 +241,41 @@ export class FamilyGroupService {
       const vitalsRecords = vitalsMap.get(memberId) ?? [];
       const latestRecord = vitalsRecords[0];
       const fallbackVitals = data?.vitals ?? data?.latestVitals ?? null;
-      const latestVitals = latestRecord || fallbackVitals
-        ? {
-            recordedAt:
-              latestRecord?.recordedAt ??
-              (latestRecord as { createdAt?: Date })?.createdAt ??
-              fallbackVitals?.recordedAt ??
-              null,
-            systolicBp: coalesceNumber(
-              latestRecord?.systolicBp,
-              fallbackVitals?.systolicBp,
-            ),
-            diastolicBp: coalesceNumber(
-              latestRecord?.diastolicBp,
-              fallbackVitals?.diastolicBp,
-            ),
-            glucoseLevel: coalesceNumber(
-              latestRecord?.glucoseLevel,
-              fallbackVitals?.glucoseLevel,
-            ),
-            heartRate: coalesceNumber(
-              latestRecord?.heartRate,
-              fallbackVitals?.heartRate,
-            ),
-            weight: coalesceNumber(
-              latestRecord?.weight,
-              fallbackVitals?.weight,
-            ),
-            height: coalesceNumber(
-              latestRecord?.height,
-              fallbackVitals?.height,
-            ),
-            bmi: coalesceNumber(
-              latestRecord?.bmi,
-              fallbackVitals?.bmi,
-            ),
-          }
-        : null;
+      const latestVitals =
+        latestRecord || fallbackVitals
+          ? {
+              recordedAt:
+                latestRecord?.recordedAt ??
+                (latestRecord as { createdAt?: Date })?.createdAt ??
+                fallbackVitals?.recordedAt ??
+                null,
+              systolicBp: coalesceNumber(
+                latestRecord?.systolicBp,
+                fallbackVitals?.systolicBp,
+              ),
+              diastolicBp: coalesceNumber(
+                latestRecord?.diastolicBp,
+                fallbackVitals?.diastolicBp,
+              ),
+              glucoseLevel: coalesceNumber(
+                latestRecord?.glucoseLevel,
+                fallbackVitals?.glucoseLevel,
+              ),
+              heartRate: coalesceNumber(
+                latestRecord?.heartRate,
+                fallbackVitals?.heartRate,
+              ),
+              weight: coalesceNumber(
+                latestRecord?.weight,
+                fallbackVitals?.weight,
+              ),
+              height: coalesceNumber(
+                latestRecord?.height,
+                fallbackVitals?.height,
+              ),
+              bmi: coalesceNumber(latestRecord?.bmi, fallbackVitals?.bmi),
+            }
+          : null;
       const healthScore = computeHealthScore(latestVitals);
       const status = deriveStatus(healthScore);
       const lastUpdated =
@@ -236,12 +309,17 @@ export class FamilyGroupService {
     const currentUserRole =
       currentMember?.role ??
       (String(group.adminId) === userId ? "admin" : "member");
+    const familyScore = computeFamilyScore(
+      memberSummaries.map((member) => member.healthScore),
+    );
+    await familyGroupRepository.updateScore(groupId, familyScore);
 
     return {
       group: {
         _id: groupId,
         name: group.name,
         adminId: String(group.adminId),
+        score: familyScore,
         createdAt: (group as any).createdAt ?? null,
         updatedAt: (group as any).updatedAt ?? null,
       },
@@ -251,13 +329,17 @@ export class FamilyGroupService {
         role: currentUserRole,
         relation: currentMember?.relation ?? null,
       },
+      familyScore,
     };
   }
 
   async createFamilyGroup(userId: string, name: string) {
     const existingGroup = await familyGroupRepository.findByMemberId(userId);
     if (existingGroup) {
-      throw new ApiError(StatusCodes.CONFLICT, "User already belongs to a family group");
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        "User already belongs to a family group",
+      );
     }
 
     const user = await userRepository.getUserById(userId);
@@ -268,6 +350,7 @@ export class FamilyGroupService {
     const group = await familyGroupRepository.create({
       name,
       adminId: toObjectId(userId),
+      score: 0,
       members: [
         {
           userId: toObjectId(userId),
@@ -284,14 +367,21 @@ export class FamilyGroupService {
     );
   }
 
-  async createInvite(groupId: string, inviterId: string, expiresInDays?: number) {
+  async createInvite(
+    groupId: string,
+    inviterId: string,
+    expiresInDays?: number,
+  ) {
     const group = await familyGroupRepository.findById(groupId);
     if (!group) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Family group not found");
     }
 
     if (!isAdminMember(group, inviterId)) {
-      throw new ApiError(StatusCodes.FORBIDDEN, "Only family admins can invite members");
+      throw new ApiError(
+        StatusCodes.FORBIDDEN,
+        "Only family admins can invite members",
+      );
     }
 
     const token = crypto.randomBytes(24).toString("hex");
@@ -322,7 +412,10 @@ export class FamilyGroupService {
     }
 
     if (!isAdminMember(group, adminId)) {
-      throw new ApiError(StatusCodes.FORBIDDEN, "Only family admins can add members");
+      throw new ApiError(
+        StatusCodes.FORBIDDEN,
+        "Only family admins can add members",
+      );
     }
 
     const user = await userRepository.getUserById(userId);
@@ -332,11 +425,17 @@ export class FamilyGroupService {
 
     const existingGroup = await familyGroupRepository.findByMemberId(userId);
     if (existingGroup && String(existingGroup._id) !== groupId) {
-      throw new ApiError(StatusCodes.CONFLICT, "User already belongs to a family group");
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        "User already belongs to a family group",
+      );
     }
 
     if (group.members.some((member) => String(member.userId) === userId)) {
-      throw new ApiError(StatusCodes.CONFLICT, "User already in this family group");
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        "User already in this family group",
+      );
     }
 
     const updatedGroup = await familyGroupRepository.addMember(groupId, {
@@ -349,6 +448,8 @@ export class FamilyGroupService {
     if (!updatedGroup) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Family group not found");
     }
+
+    await this.refreshGroupScore(groupId);
 
     return (
       (await familyGroupRepository.findByIdWithMembers(groupId)) ?? updatedGroup
@@ -367,7 +468,10 @@ export class FamilyGroupService {
     }
 
     if (!isAdminMember(group, adminId)) {
-      throw new ApiError(StatusCodes.FORBIDDEN, "Only family admins can update relations");
+      throw new ApiError(
+        StatusCodes.FORBIDDEN,
+        "Only family admins can update relations",
+      );
     }
 
     const cleanRelation = relation?.trim() || undefined;
@@ -381,8 +485,9 @@ export class FamilyGroupService {
     }
 
     return (
-      (await familyGroupRepository.findByIdWithMembers(String(updatedGroup._id))) ??
-      updatedGroup
+      (await familyGroupRepository.findByIdWithMembers(
+        String(updatedGroup._id),
+      )) ?? updatedGroup
     );
   }
 
@@ -407,7 +512,10 @@ export class FamilyGroupService {
 
     const existingGroup = await familyGroupRepository.findByMemberId(userId);
     if (existingGroup && String(existingGroup._id) !== String(group._id)) {
-      throw new ApiError(StatusCodes.CONFLICT, "User already belongs to a family group");
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        "User already belongs to a family group",
+      );
     }
 
     if (!group.members.some((member) => String(member.userId) === userId)) {
@@ -421,6 +529,7 @@ export class FamilyGroupService {
     }
 
     await familyInviteRepository.markUsed(token, userId);
+    await this.refreshGroupScore(String(group._id));
 
     return familyGroupRepository.findByIdWithMembers(String(group._id));
   }
