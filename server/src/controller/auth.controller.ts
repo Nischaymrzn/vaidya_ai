@@ -7,6 +7,7 @@ import { UserServices } from "../services/auth.service";
 import responseMessages from "../constants/responseMessages";
 import {
   CreateUserDTO,
+  googleMobileLoginDTO,
   loginUserDTO,
   requestPasswordResetDTO,
   resetPasswordDTO,
@@ -28,9 +29,9 @@ export class AuthController {
     }
     const createdUser = await userServices.createUser(parsedData.data);
 
-    return res.status(StatusCodes.CREATED).json(
-      new ApiResponse(201, responseMessages.USER.CREATED, createdUser),
-    );
+    return res
+      .status(StatusCodes.CREATED)
+      .json(new ApiResponse(201, responseMessages.USER.CREATED, createdUser));
   });
 
   loginUser = asyncHandler(async (req: Request, res: Response) => {
@@ -56,6 +57,28 @@ export class AuthController {
     );
   });
 
+  googleMobileLogin = asyncHandler(async (req: Request, res: Response) => {
+    const parsedData = googleMobileLoginDTO.safeParse(req.body);
+    if (!parsedData.success) {
+      return res.status(400).json({
+        success: false,
+        status: 400,
+        message: parsedData.error.flatten().fieldErrors,
+      });
+    }
+
+    const { accessToken, refreshToken, user } =
+      await userServices.loginWithGoogleIdToken(parsedData.data.idToken);
+
+    return res.status(StatusCodes.CREATED).json(
+      new ApiResponse(201, responseMessages.USER.LOGGED_IN, {
+        user,
+        accessToken,
+        refreshToken,
+      }),
+    );
+  });
+
   getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) {
       throw new ApiError(
@@ -64,7 +87,8 @@ export class AuthController {
       );
     }
 
-    const userId = req.user?.id ?? (req.user?._id != null ? String(req.user._id) : "");
+    const userId =
+      req.user?.id ?? (req.user?._id != null ? String(req.user._id) : "");
     const currentUser = await userServices.getCurrentUser(userId);
     return res.json(
       new ApiResponse(
@@ -120,5 +144,3 @@ export class AuthController {
     );
   });
 }
-
-
