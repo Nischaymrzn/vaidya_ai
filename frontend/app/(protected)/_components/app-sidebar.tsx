@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import { mainNavItems, otherNavItems } from "./nav-items"
+import { mainNavItems, otherNavItems, type NavItem } from "./nav-items"
 import logo from "@/public/logo.svg"
 
 export function AppSidebar() {
@@ -40,8 +40,12 @@ export function AppSidebar() {
     "group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0"
   )
 
-  const collapsedMainItems = mainNavItems.flatMap((item) =>
-    item.items ? item.items : [item]
+  const collapsedMainItems: NavItem[] = mainNavItems.flatMap((item) =>
+    item.items
+      ? item.items
+      : item.href
+        ? [{ href: item.href, label: item.label, icon: item.icon }]
+        : []
   )
 
   return (

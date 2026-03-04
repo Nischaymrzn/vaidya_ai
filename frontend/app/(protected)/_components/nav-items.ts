@@ -15,13 +15,13 @@ import {
   Users,
 } from "lucide-react";
 
-type NavLeafItem = {
+export type NavLeafItem = {
   href: string;
   label: string;
   icon: LucideIcon;
 };
 
-type NavItem = {
+export type NavItem = {
   href?: string;
   label: string;
   icon: LucideIcon;
