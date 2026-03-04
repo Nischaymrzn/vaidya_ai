@@ -146,19 +146,21 @@ export default function DoctorConsultPage() {
       const data = await response.json()
       const reply = data?.reply?.trim() || "I'm sorry, I couldn't respond."
       setMessages((prev) => {
-        const updated = [...prev, { role: "assistant", content: reply }]
+        const assistantReply: ChatMessage = { role: "assistant", content: reply }
+        const updated: ChatMessage[] = [...prev, assistantReply]
         conversationHistoryRef.current = updated
         return updated
       })
       speak(reply)
     } catch (error) {
       setMessages((prev) => {
-        const updated = [
+        const fallbackReply: ChatMessage = {
+          role: "assistant",
+          content: "I ran into an error. Please try again in a moment.",
+        }
+        const updated: ChatMessage[] = [
           ...prev,
-          {
-            role: "assistant",
-            content: "I ran into an error. Please try again in a moment.",
-          },
+          fallbackReply,
         ]
         conversationHistoryRef.current = updated
         return updated
@@ -180,7 +182,7 @@ export default function DoctorConsultPage() {
     recognition.interimResults = true
     recognition.lang = "en-US"
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       if (!micOnRef.current || isSpeakingRef.current || isThinkingRef.current) {
         return
       }

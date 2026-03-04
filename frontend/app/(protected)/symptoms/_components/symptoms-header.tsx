@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import type { TSymptoms } from "@/lib/definition";
 import { Plus } from "lucide-react";
 import { SymptomForm, type SymptomPayload } from "./symptom-form";
 
@@ -18,7 +19,7 @@ type SymptomsHeaderProps = {
   onCreate: (payload: SymptomPayload) => void;
   isPending: boolean;
   severityOptions: string[];
-  statusOptions: string[];
+  statusOptions: Array<NonNullable<TSymptoms["status"]>>;
 };
 
 export function SymptomsHeader({

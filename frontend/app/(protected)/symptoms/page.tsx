@@ -28,7 +28,11 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const severityOptions = ["Mild", "Moderate", "Severe"];
-const statusOptions = ["ongoing", "resolved", "unknown"];
+const statusOptions: Array<NonNullable<TSymptoms["status"]>> = [
+  "ongoing",
+  "resolved",
+  "unknown",
+];
 
 export default function SymptomsPage() {
   const router = useRouter();

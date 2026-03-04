@@ -17,7 +17,7 @@ import {
 type SymptomFormState = {
   symptomList: string;
   severity: string;
-  status: string;
+  status: NonNullable<TSymptoms["status"]> | "";
   durationDays: string;
   diagnosis: string;
   disease: string;
@@ -28,7 +28,7 @@ type SymptomFormState = {
 export type SymptomPayload = {
   symptomList: string[];
   severity?: string;
-  status?: string;
+  status?: TSymptoms["status"];
   durationDays?: number;
   diagnosis?: string;
   disease?: string;
@@ -52,6 +52,7 @@ const buildInitialForm = (symptom?: TSymptoms | null): SymptomFormState => ({
 const toPayload = (state: SymptomFormState): SymptomPayload => {
   const loggedAt = state.loggedAt ? new Date(state.loggedAt).toISOString() : undefined;
   const durationDays = state.durationDays ? parseInt(state.durationDays, 10) : undefined;
+  const status = state.status || undefined;
 
   return {
     symptomList: state.symptomList
@@ -59,7 +60,7 @@ const toPayload = (state: SymptomFormState): SymptomPayload => {
       .map((s) => s.trim())
       .filter(Boolean),
     severity: state.severity || undefined,
-    status: state.status || undefined,
+    status,
     durationDays,
     diagnosis: state.diagnosis || undefined,
     disease: state.disease || undefined,
@@ -74,7 +75,7 @@ type SymptomFormProps = {
   submitLabel: string;
   busy?: boolean;
   severityOptions: string[];
-  statusOptions: string[];
+  statusOptions: Array<NonNullable<TSymptoms["status"]>>;
 };
 
 export function SymptomForm({

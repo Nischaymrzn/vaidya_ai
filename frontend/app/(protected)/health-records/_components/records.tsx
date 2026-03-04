@@ -473,11 +473,12 @@ export default function Records() {
     setScanLoading(false)
 
     if (scanResult.success && scanResult.data) {
-      const recordType = normalizeRecordTypeLabel(scanResult.data.recordType)
+      const scanData = scanResult.data
+      const recordType = normalizeRecordTypeLabel(scanData.recordType)
       const normalizedCategory = normalizeCategoryLabel(recordType)
       const structured =
-        scanResult.data.structured && typeof scanResult.data.structured === "object"
-          ? scanResult.data.structured
+        scanData.structured && typeof scanData.structured === "object"
+          ? scanData.structured
           : {}
       const mappedStructured: Record<string, string> = {}
       Object.entries(structured).forEach(([key, value]) => {
@@ -492,14 +493,11 @@ export default function Records() {
       setAiStructured(mappedStructured)
       setAiDraft((prev) => ({
         ...prev,
-        title:
-          scanResult.data?.text && !baseName
-            ? "Scanned record"
-            : prev.title,
+        title: scanData.text && !baseName ? "Scanned record" : prev.title,
         category: normalizedCategory ?? prev.category,
-        provider: scanResult.data.provider ?? prev.provider,
-        date: scanResult.data.recordDate ?? prev.date,
-        content: scanResult.data.summary ?? scanResult.data.text ?? prev.content,
+        provider: scanData.provider ?? prev.provider,
+        date: scanData.recordDate ?? prev.date,
+        content: scanData.summary ?? scanData.text ?? prev.content,
       }))
     } else {
       toast.error(scanResult.message || "Failed to scan image")

@@ -153,12 +153,12 @@ export default function RiskAnalysisPage() {
         useLatest: true,
         maxInsights: 6,
       })
-      if (!result.success || !result.data?.assessment) return
-      setAnalysis(result.data.assessment)
-      setAnalysisInsights(result.data.insights ?? [])
-      if (result.data.assessment) {
-        setRiskHistory((prev) => [result.data.assessment!, ...prev])
-      }
+      const data = result.data
+      if (!result.success || !data?.assessment) return
+      const { assessment } = data
+      setAnalysis(assessment)
+      setAnalysisInsights(data.insights ?? [])
+      setRiskHistory((prev) => [assessment, ...prev])
     })
   }
 

@@ -32,7 +32,7 @@ Cypress.Commands.add("loginByApi", (options: LoginOptions = {}) => {
         allowedStatuses: number[],
         attempt = 0,
       ): Cypress.Chainable<Cypress.Response<any>> => {
-        return requestFn().then((res) => {
+        return requestFn().then((res): Cypress.Chainable<Cypress.Response<any>> => {
           if (res.status === 429 && attempt < 3) {
             const retryAfterHeader = res.headers["retry-after"];
             const retryAfterSeconds = Number(retryAfterHeader ?? 1);
@@ -40,12 +40,15 @@ Cypress.Commands.add("loginByApi", (options: LoginOptions = {}) => {
               5,
               Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : 1,
             );
-            cy.wait(boundedSeconds * 1000 + 500);
-            return requestWithRateLimitRetry(requestFn, allowedStatuses, attempt + 1);
+            return cy
+              .wait(boundedSeconds * 1000 + 500)
+              .then(() =>
+                requestWithRateLimitRetry(requestFn, allowedStatuses, attempt + 1),
+              );
           }
 
           expect(allowedStatuses).to.include(res.status);
-          return res;
+          return cy.wrap(res, { log: false });
         });
       };
 
@@ -65,7 +68,7 @@ Cypress.Commands.add("loginByApi", (options: LoginOptions = {}) => {
         [200, 201, 400, 409],
       );
 
-      const attemptLogin = (attempt = 0): Cypress.Chainable => {
+      const attemptLogin = (attempt = 0): Cypress.Chainable<unknown> => {
         return cy
           .request({
             method: "POST",
@@ -82,8 +85,7 @@ Cypress.Commands.add("loginByApi", (options: LoginOptions = {}) => {
                 Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : 1,
               );
               const waitMs = boundedSeconds * 1000;
-              cy.wait(waitMs + 500);
-              return attemptLogin(attempt + 1);
+              return cy.wait(waitMs + 500).then(() => attemptLogin(attempt + 1));
             }
 
             expect([200, 201]).to.include(loginRes.status);
@@ -92,6 +94,7 @@ Cypress.Commands.add("loginByApi", (options: LoginOptions = {}) => {
             cy.setCookie("access_token", token);
             Cypress.env("authToken", token);
             Cypress.env("authEmail", email);
+            return cy.wrap(undefined, { log: false });
           });
       };
 

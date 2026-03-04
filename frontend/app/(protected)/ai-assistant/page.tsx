@@ -46,7 +46,8 @@ export default function Page() {
   const sendMessage = async (content: string) => {
     const trimmed = content.trim()
     if (!trimmed || isThinking) return
-    const nextHistory = [...conversationRef.current, { role: "user", content: trimmed }]
+    const userMessage: ChatMessage = { role: "user", content: trimmed }
+    const nextHistory: ChatMessage[] = [...conversationRef.current, userMessage]
     conversationRef.current = nextHistory
     setMessages(nextHistory)
     setInputValue("")
@@ -66,16 +67,18 @@ export default function Page() {
         data?.reply?.trim() ||
         data?.message?.trim() ||
         "I'm sorry, I couldn't respond."
-      const updated = [...conversationRef.current, { role: "assistant", content: reply }]
+      const assistantReply: ChatMessage = { role: "assistant", content: reply }
+      const updated: ChatMessage[] = [...conversationRef.current, assistantReply]
       conversationRef.current = updated
       setMessages(updated)
     } catch {
-      const updated = [
+      const fallbackReply: ChatMessage = {
+        role: "assistant",
+        content: "I ran into an error. Please try again in a moment.",
+      }
+      const updated: ChatMessage[] = [
         ...conversationRef.current,
-        {
-          role: "assistant",
-          content: "I ran into an error. Please try again in a moment.",
-        },
+        fallbackReply,
       ]
       conversationRef.current = updated
       setMessages(updated)

@@ -111,7 +111,9 @@ export const buildFallbackInsights = (records: TMedicalRecord[]): InsightItem[] 
         : typeof (structured as Record<string, unknown>).symptomStatus === "string"
           ? (structured as Record<string, unknown>).symptomStatus
           : ""
-    return statusValue.toLowerCase() === "ongoing"
+    const normalizedStatus =
+      typeof statusValue === "string" ? statusValue.toLowerCase() : ""
+    return normalizedStatus === "ongoing"
   }).length
   if (ongoingSymptomsCount) {
     insights.push({
