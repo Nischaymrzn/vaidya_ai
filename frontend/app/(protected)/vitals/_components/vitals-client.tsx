@@ -328,7 +328,7 @@ function InsightCard({ card, trend }: { card?: VitalsSummaryCard; trend: VitalsT
   const percentLabel = insightLabelByStatus[status] ?? "STATUS";
   const PRIMARY = "#1F7AE0";
   const ringStyle = {
-    background: `conic-gradient(${PRIMARY} ${percent * 3.6}deg, hsl(var(--muted)) 0deg)`,
+    background: `conic-gradient(${PRIMARY} ${percent * 3.6}deg, var(--muted) 0deg)`,
   };
   const dataKey =
     card?.key === "bloodPressure"
@@ -402,14 +402,14 @@ function InsightCard({ card, trend }: { card?: VitalsSummaryCard; trend: VitalsT
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
-                  stroke="hsl(var(--border))"
+                  stroke="var(--border)"
                   strokeOpacity={0.5}
                 />
                 <XAxis
                   dataKey="label"
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                   tickMargin={8}
                 />
                 <YAxis hide />
