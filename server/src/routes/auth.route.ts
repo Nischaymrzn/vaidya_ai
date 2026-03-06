@@ -9,6 +9,15 @@ const authRouter = Router();
 const authcontroller = new AuthController();
 
 const defaultGoogleRedirect = `${env.CLIENT_URL.replace(/\/$/, "")}/login`;
+const allowedGoogleRedirectHosts = new Set(
+  env.CLIENT_URLS.flatMap((origin) => {
+    try {
+      return [new URL(origin).host];
+    } catch (_) {
+      return [];
+    }
+  }),
+);
 
 function resolveGoogleRedirect(raw?: string): string {
   if (!raw) return defaultGoogleRedirect;
@@ -31,8 +40,7 @@ function resolveGoogleRedirect(raw?: string): string {
       return defaultGoogleRedirect;
     }
 
-    const defaultClient = new URL(env.CLIENT_URL);
-    const isSameHost = url.host === defaultClient.host;
+    const isSameHost = allowedGoogleRedirectHosts.has(url.host);
     const isLocalHost =
       url.hostname === "localhost" ||
       url.hostname === "127.0.0.1" ||

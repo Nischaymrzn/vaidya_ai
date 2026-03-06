@@ -16,7 +16,8 @@ export function GoogleLoginButton() {
       const res = await fetch(`${API_BASE}/auth/google/status`);
       const data = await res.json();
       if (data?.configured) {
-        window.location.href = `${API_BASE}/auth/google`;
+        const redirectUri = `${window.location.origin}/login`;
+        window.location.href = `${API_BASE}/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
       } else {
         toast.error(
           "Google login is not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your server .env. See .env.example."

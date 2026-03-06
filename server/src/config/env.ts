@@ -3,6 +3,29 @@ import type { StringValue } from "ms";
 
 dotenv.config();
 
+function parseCsvEnv(value?: string): string[] {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((entry) => entry.trim().replace(/^['"]|['"]$/g, ""))
+    .map((entry) => {
+      try {
+        return new URL(entry).toString().replace(/\/$/, "");
+      } catch (_) {
+        return entry.replace(/\/+$/, "");
+      }
+    })
+    .filter(Boolean);
+}
+
+function toOrigin(value: string): string {
+  try {
+    return new URL(value).origin;
+  } catch (_) {
+    return value;
+  }
+}
+
 function requiredEnv(key: string): string {
   const value = process.env[key];
   if (!value) {
@@ -10,6 +33,13 @@ function requiredEnv(key: string): string {
   }
   return value;
 }
+
+const clientUrls = parseCsvEnv(process.env.CLIENT_URL);
+const normalizedClientUrls =
+  clientUrls.length > 0 ? clientUrls : ["http://localhost:3000"];
+const normalizedClientOrigins = Array.from(
+  new Set(normalizedClientUrls.map((url) => toOrigin(url)).filter(Boolean)),
+);
 
 export const env = {
   MONGODB_URI: requiredEnv("MONGODB_URI"),
@@ -24,7 +54,8 @@ export const env = {
   PASSWORD_RESET_SECRET: requiredEnv("PASSWORD_RESET_SECRET"),
   PASSWORD_RESET_EXPIRY:
     (process.env.PASSWORD_RESET_EXPIRY as StringValue) ?? "1h",
-  CLIENT_URL: process.env.CLIENT_URL ?? "http://localhost:3000",
+  CLIENT_URL: normalizedClientUrls[0],
+  CLIENT_URLS: normalizedClientOrigins,
   SERVER_URL:
     process.env.SERVER_URL ?? process.env.API_URL ?? "http://localhost:5000",
   SMTP_HOST: requiredEnv("SMTP_HOST"),

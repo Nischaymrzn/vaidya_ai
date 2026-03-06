@@ -18,7 +18,7 @@ const app: Application = express();
 const allowedCorsOrigins = Array.from(
   new Set(
     [
-      ...env.CLIENT_URL.split(",").map((origin) => origin.trim()),
+      ...env.CLIENT_URLS,
       ...(env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
     ].filter(Boolean),
   ),
