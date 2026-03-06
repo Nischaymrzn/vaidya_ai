@@ -35,10 +35,18 @@ const userSchema = new mongoose.Schema<UserType>(
       type: Boolean,
       default: true,
     },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
     googleId: {
       type: String,
       sparse: true,
       unique: true,
+    },
+    stripeCustomerId: {
+      type: String,
+      index: true,
     },
 
     deletedAt: Date,

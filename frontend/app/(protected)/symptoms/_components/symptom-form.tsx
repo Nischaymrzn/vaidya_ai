@@ -17,7 +17,7 @@ import {
 type SymptomFormState = {
   symptomList: string;
   severity: string;
-  status: string;
+  status: NonNullable<TSymptoms["status"]> | "";
   durationDays: string;
   diagnosis: string;
   disease: string;
@@ -28,7 +28,7 @@ type SymptomFormState = {
 export type SymptomPayload = {
   symptomList: string[];
   severity?: string;
-  status?: string;
+  status?: TSymptoms["status"];
   durationDays?: number;
   diagnosis?: string;
   disease?: string;
@@ -52,6 +52,7 @@ const buildInitialForm = (symptom?: TSymptoms | null): SymptomFormState => ({
 const toPayload = (state: SymptomFormState): SymptomPayload => {
   const loggedAt = state.loggedAt ? new Date(state.loggedAt).toISOString() : undefined;
   const durationDays = state.durationDays ? parseInt(state.durationDays, 10) : undefined;
+  const status = state.status || undefined;
 
   return {
     symptomList: state.symptomList
@@ -59,7 +60,7 @@ const toPayload = (state: SymptomFormState): SymptomPayload => {
       .map((s) => s.trim())
       .filter(Boolean),
     severity: state.severity || undefined,
-    status: state.status || undefined,
+    status,
     durationDays,
     diagnosis: state.diagnosis || undefined,
     disease: state.disease || undefined,
@@ -74,7 +75,7 @@ type SymptomFormProps = {
   submitLabel: string;
   busy?: boolean;
   severityOptions: string[];
-  statusOptions: string[];
+  statusOptions: Array<NonNullable<TSymptoms["status"]>>;
 };
 
 export function SymptomForm({
@@ -101,21 +102,21 @@ export function SymptomForm({
     >
       <div className="grid gap-4">
         <div>
-          <Label className="text-sm font-medium text-slate-700">Symptoms</Label>
+          <Label className="text-sm font-medium text-foreground">Symptoms</Label>
           <Textarea
             value={state.symptomList}
             onChange={(e) => handleChange("symptomList", e.target.value)}
             placeholder="e.g., Headache, Fever, Cough (comma separated)"
             className="mt-1.5 min-h-[80px]"
           />
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             Separate multiple symptoms with commas
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label className="text-sm font-medium text-slate-700">Severity</Label>
+            <Label className="text-sm font-medium text-foreground">Severity</Label>
             <Select value={state.severity} onValueChange={(val) => handleChange("severity", val)}>
               <SelectTrigger className="mt-1.5">
                 <SelectValue placeholder="Select severity" />
@@ -131,7 +132,7 @@ export function SymptomForm({
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-slate-700">Status</Label>
+            <Label className="text-sm font-medium text-foreground">Status</Label>
             <Select value={state.status} onValueChange={(val) => handleChange("status", val)}>
               <SelectTrigger className="mt-1.5">
                 <SelectValue placeholder="Select status" />
@@ -147,7 +148,7 @@ export function SymptomForm({
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-slate-700">Duration (days)</Label>
+            <Label className="text-sm font-medium text-foreground">Duration (days)</Label>
             <Input
               type="number"
               value={state.durationDays}
@@ -158,7 +159,7 @@ export function SymptomForm({
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-slate-700">When did it start?</Label>
+            <Label className="text-sm font-medium text-foreground">When did it start?</Label>
             <Input
               type="datetime-local"
               value={state.loggedAt}
@@ -169,7 +170,7 @@ export function SymptomForm({
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-slate-700">Notes (optional)</Label>
+          <Label className="text-sm font-medium text-foreground">Notes (optional)</Label>
           <Textarea
             value={state.notes}
             onChange={(e) => handleChange("notes", e.target.value)}

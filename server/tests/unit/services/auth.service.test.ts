@@ -4,11 +4,13 @@ import { UserRepository } from "../../../src/repositories/user.repository";
 import { bcryptUtil } from "../../../src/utils/bcrypt";
 import GenerateTokens from "../../../src/utils/generateToken";
 import { sendEmail } from "../../../src/utils/mailer";
+import { UserDataService } from "../../../src/services/user-data.service";
 
 jest.mock("../../../src/repositories/user.repository");
 jest.mock("../../../src/utils/bcrypt");
 jest.mock("../../../src/utils/generateToken");
 jest.mock("../../../src/utils/mailer");
+jest.mock("../../../src/services/user-data.service");
 jest.mock("jsonwebtoken");
 
 const UserRepositoryMock = UserRepository as jest.MockedClass<
@@ -17,6 +19,13 @@ const UserRepositoryMock = UserRepository as jest.MockedClass<
 
 const getRepo = () =>
   UserRepositoryMock.mock.instances[0] as jest.Mocked<UserRepository>;
+
+const UserDataServiceMock = UserDataService as jest.MockedClass<
+  typeof UserDataService
+>;
+
+const getUserDataService = () =>
+  UserDataServiceMock.mock.instances[0] as jest.Mocked<UserDataService>;
 
 describe("UserServices", () => {
   beforeEach(() => {
@@ -32,6 +41,9 @@ describe("UserServices", () => {
     repo.createUser?.mockReset();
     repo.getUserById?.mockReset();
     repo.updateOneUser?.mockReset();
+    const userDataService = getUserDataService();
+    userDataService.ensureUserData?.mockReset();
+    userDataService.ensureUserData?.mockResolvedValue({} as any);
   });
 
   it("should create user and return safe payload", async () => {

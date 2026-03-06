@@ -82,16 +82,16 @@ const fallbackChecklistItems = [
 ]
 
 const riskBadgeStyles: Record<"Low" | "Medium" | "High", string> = {
-  Low: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  Medium: "border-amber-200 bg-amber-50 text-amber-700",
-  High: "border-rose-200 bg-rose-50 text-rose-700",
+  Low: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
+  Medium: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
+  High: "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300",
 }
 
 const insightTone: Record<"High" | "Medium" | "Low" | "Info", string> = {
-  High: "border-rose-200 bg-rose-50 text-rose-700",
-  Medium: "border-amber-200 bg-amber-50 text-amber-700",
-  Low: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  Info: "border-slate-200 bg-slate-50 text-slate-600",
+  High: "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300",
+  Medium: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
+  Low: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
+  Info: "border-border bg-muted/40 text-muted-foreground",
 }
 
 export default function RiskAnalysisPage() {
@@ -153,12 +153,12 @@ export default function RiskAnalysisPage() {
         useLatest: true,
         maxInsights: 6,
       })
-      if (!result.success || !result.data?.assessment) return
-      setAnalysis(result.data.assessment)
-      setAnalysisInsights(result.data.insights ?? [])
-      if (result.data.assessment) {
-        setRiskHistory((prev) => [result.data.assessment!, ...prev])
-      }
+      const data = result.data
+      if (!result.success || !data?.assessment) return
+      const { assessment } = data
+      setAnalysis(assessment)
+      setAnalysisInsights(data.insights ?? [])
+      setRiskHistory((prev) => [assessment, ...prev])
     })
   }
 
@@ -186,7 +186,7 @@ export default function RiskAnalysisPage() {
   ]
 
   const keySignals = analysis?.analysis?.keyFindings?.length
-    ? analysis.analysis.keyFindings.map((finding) => ({
+    ? analysis.analysis.keyFindings.slice(0, 4).map((finding) => ({
       label: finding.title,
       value: finding.detail,
     }))
@@ -277,10 +277,10 @@ export default function RiskAnalysisPage() {
   )
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-background">
       <div className="w-full px-4 pb-14 pt-8 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          <section className="relative overflow-hidden rounded-[32px] border border-primary/20 bg-primary text-primary-foreground shadow-xl">
+          <section className="relative overflow-hidden rounded-[32px] border border-primary/20 bg-[linear-gradient(135deg,#1F7AE0_0%,#185FB0_100%)] text-primary-foreground shadow-xl dark:border-border dark:bg-[linear-gradient(135deg,oklch(0.21_0_0)_0%,oklch(0.18_0_0)_100%)]">
             <div className="relative px-8 py-7">
               <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                 <div className="space-y-3">
@@ -308,7 +308,7 @@ export default function RiskAnalysisPage() {
                 </div>
                 <div className="flex flex-col gap-3 lg:items-end">
                   <Button
-                    className="h-11 rounded-full bg-white text-primary shadow-sm hover:bg-white/90"
+                    className="h-11 rounded-full bg-white text-primary shadow-sm hover:bg-white/90 dark:bg-foreground dark:text-background dark:hover:bg-foreground/90"
                     onClick={handleRunAnalysis}
                     disabled={analysisPending}
                   >
@@ -343,8 +343,8 @@ export default function RiskAnalysisPage() {
 
           <section className="space-y-4">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Disease modules</h2>
-              <p className="text-sm text-slate-500">
+              <h2 className="text-xl font-semibold text-foreground">Disease modules</h2>
+              <p className="text-sm text-muted-foreground">
                 Open a prediction module to run disease-specific analysis.
               </p>
             </div>
@@ -353,28 +353,28 @@ export default function RiskAnalysisPage() {
                 const Icon = profile.icon
 
                 return (
-                  <Card key={profile.key} className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+                  <Card key={profile.key} className="rounded-3xl border border-border bg-card shadow-sm">
                     <CardHeader className="pb-1">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-muted/70 text-muted-foreground">
                           <Icon className="h-4 w-4" />
                         </div>
                         <div>
-                          <CardTitle className="text-base font-semibold text-slate-900">
+                          <CardTitle className="text-base font-semibold text-foreground">
                             {profile.name}
                           </CardTitle>
-                          <CardDescription className="text-xs text-slate-500">
+                          <CardDescription className="text-xs text-muted-foreground">
                             {profile.status}
                           </CardDescription>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <p className="text-sm text-slate-600">{profile.description}</p>
-                      <div className="space-y-1.5 text-xs text-slate-500">
+                      <p className="text-sm text-muted-foreground">{profile.description}</p>
+                      <div className="space-y-1.5 text-xs text-muted-foreground">
                         {profile.factors.map((factor) => (
                           <div key={factor} className="flex items-center gap-2">
-                            <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
                             <span>{factor}</span>
                           </div>
                         ))}
@@ -391,10 +391,10 @@ export default function RiskAnalysisPage() {
 
           <section className="grid gap-5 lg:grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)]">
             <div className="space-y-5">
-              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+              <Card className="rounded-3xl border border-border bg-card shadow-sm">
                 <CardHeader className="pb-1">
-                  <CardTitle className="text-base font-semibold text-slate-900">Risk trajectory</CardTitle>
-                  <CardDescription className="text-sm text-slate-500">
+                  <CardTitle className="text-base font-semibold text-foreground">Risk trajectory</CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground">
                     Composite risk over the last six months.
                   </CardDescription>
                 </CardHeader>
@@ -411,12 +411,16 @@ export default function RiskAnalysisPage() {
                             <stop offset="100%" stopColor={PRIMARY} stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="hsl(var(--border))"
+                        />
                         <XAxis
                           dataKey="month"
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                           tickMargin={8}
                         />
                         <YAxis hide />
@@ -432,17 +436,17 @@ export default function RiskAnalysisPage() {
                       </AreaChart>
                     </ChartContainer>
                   ) : (
-                    <div className="flex h-52 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+                    <div className="flex h-52 items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground">
                       Run full analysis to view the risk trajectory.
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+              <Card className="rounded-3xl border border-border bg-card shadow-sm">
                 <CardHeader className="pb-1">
-                  <CardTitle className="text-base font-semibold text-slate-900">Signal contribution</CardTitle>
-                  <CardDescription className="text-sm text-slate-500">
+                  <CardTitle className="text-base font-semibold text-foreground">Signal contribution</CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground">
                     Weighted influence of each data group in the model.
                   </CardDescription>
                 </CardHeader>
@@ -457,7 +461,7 @@ export default function RiskAnalysisPage() {
                           dataKey="name"
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                         />
                         <YAxis hide />
                         <ChartTooltip content={<ChartTooltipContent />} />
@@ -465,7 +469,7 @@ export default function RiskAnalysisPage() {
                       </BarChart>
                     </ChartContainer>
                   ) : (
-                    <div className="flex h-52 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+                    <div className="flex h-52 items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground">
                       Signal contribution appears after analysis.
                     </div>
                   )}
@@ -474,38 +478,38 @@ export default function RiskAnalysisPage() {
             </div>
 
             <aside className="space-y-4">
-              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+              <Card className="rounded-3xl border border-border bg-card shadow-sm">
                 <CardHeader className="pb-1">
-                  <CardTitle className="text-base font-semibold text-slate-900">Key signals</CardTitle>
-                  <CardDescription className="text-sm text-slate-500">
+                  <CardTitle className="text-base font-semibold text-foreground">Key signals</CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground">
                     Signals used in the current analysis.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {keySignals.map((signal) => (
-                    <div key={signal.label} className="rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2">
-                      <p className="text-xs uppercase tracking-wider text-slate-500">{signal.label}</p>
-                      <p className="text-sm font-medium text-slate-900">{signal.value}</p>
+                    <div key={signal.label} className="rounded-2xl border border-border bg-muted/40 px-3 py-2">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground">{signal.label}</p>
+                      <p className="text-sm font-medium text-foreground">{signal.value}</p>
                     </div>
                   ))}
                 </CardContent>
               </Card>
 
-              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+              <Card className="rounded-3xl border border-border bg-card shadow-sm">
                 <CardHeader className="pb-1">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <CardTitle className="text-base font-semibold text-slate-900">AI insights</CardTitle>
-                      <CardDescription className="text-sm text-slate-500">
+                      <CardTitle className="text-base font-semibold text-foreground">AI insights</CardTitle>
+                      <CardDescription className="text-sm text-muted-foreground">
                         Alerts and improvement opportunities.
                       </CardDescription>
                     </div>
                     {analysisReady ? (
                       <div className="flex items-center gap-2 text-[11px]">
-                        <span className="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-rose-700">
+                        <span className="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
                           Alerts {alertInsights.length}
                         </span>
-                        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
+                        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
                           Improve {improvementInsights.length}
                         </span>
                       </div>
@@ -514,13 +518,13 @@ export default function RiskAnalysisPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {!analysisReady ? (
-                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500">
+                    <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-3 py-3 text-sm text-muted-foreground">
                       Run full analysis to view AI insights.
                     </div>
                   ) : (
                     <>
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs text-slate-500">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <p className="uppercase tracking-wider">Alerts</p>
                           <span>High/Medium priority</span>
                         </div>
@@ -529,14 +533,14 @@ export default function RiskAnalysisPage() {
                             {alertInsights.slice(0, 3).map((insight) => (
                               <div
                                 key={insight._id}
-                                className="flex items-start gap-3 rounded-2xl border border-rose-200/70 bg-rose-50/60 px-3 py-2"
+                                className="flex items-start gap-3 rounded-2xl border border-rose-200/70 bg-rose-50/60 px-3 py-2 dark:border-rose-900 dark:bg-rose-950/30"
                               >
                                 <span className="mt-1.5 h-2 w-2 rounded-full bg-rose-500" />
                                 <div className="min-w-0 flex-1">
-                                  <p className="text-sm font-semibold text-slate-900">
+                                  <p className="text-sm font-semibold text-foreground">
                                     {insight.insightTitle}
                                   </p>
-                                  <p className="text-xs text-slate-600">{insight.description}</p>
+                                  <p className="text-xs text-muted-foreground">{insight.description}</p>
                                 </div>
                                 <span
                                   className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${insightTone[insight.priority ?? "Info"]}`}
@@ -547,11 +551,11 @@ export default function RiskAnalysisPage() {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-slate-500">No critical alerts detected.</p>
+                          <p className="text-xs text-muted-foreground">No critical alerts detected.</p>
                         )}
                       </div>
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs text-slate-500">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <p className="uppercase tracking-wider">Improving health</p>
                           <span>Low/Info priority</span>
                         </div>
@@ -560,14 +564,14 @@ export default function RiskAnalysisPage() {
                             {improvementInsights.slice(0, 3).map((insight) => (
                               <div
                                 key={insight._id}
-                                className="flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2"
+                                className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 px-3 py-2"
                               >
                                 <span className="mt-1.5 h-2 w-2 rounded-full bg-emerald-500" />
                                 <div className="min-w-0 flex-1">
-                                  <p className="text-sm font-semibold text-slate-900">
+                                  <p className="text-sm font-semibold text-foreground">
                                     {insight.insightTitle}
                                   </p>
-                                  <p className="text-xs text-slate-600">{insight.description}</p>
+                                  <p className="text-xs text-muted-foreground">{insight.description}</p>
                                 </div>
                                 <span
                                   className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${insightTone[insight.priority ?? "Info"]}`}
@@ -578,7 +582,7 @@ export default function RiskAnalysisPage() {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-slate-500">No improvement insights yet.</p>
+                          <p className="text-xs text-muted-foreground">No improvement insights yet.</p>
                         )}
                       </div>
                     </>
@@ -592,31 +596,31 @@ export default function RiskAnalysisPage() {
 
           <section className="space-y-3">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Full analysis</h2>
-              <p className="text-sm text-slate-500">
+              <h2 className="text-xl font-semibold text-foreground">Full analysis</h2>
+              <p className="text-sm text-muted-foreground">
                 Detailed interpretation across vitals, symptoms, records, medications, and history.
               </p>
             </div>
-            <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+            <Card className="rounded-3xl border border-border bg-card shadow-sm">
               <CardHeader className="flex flex-wrap items-center justify-between gap-2 pb-1">
-                <CardTitle className="text-base font-semibold text-slate-900">Overall summary</CardTitle>
+                <CardTitle className="text-base font-semibold text-foreground">Overall summary</CardTitle>
                 <span
                   className={`rounded-full border px-3 py-1 text-xs font-semibold ${riskBadgeStyles[resolvedRiskLevel]}`}
                 >
                   {resolvedRiskLabel}
                 </span>
               </CardHeader>
-              <CardContent className="pt-1 text-sm leading-relaxed text-slate-600">
+              <CardContent className="pt-1 text-sm leading-relaxed text-muted-foreground">
                 {analysis?.analysis?.summary ?? "Run full analysis to generate a summary."}
               </CardContent>
             </Card>
             <div className="grid gap-3 lg:grid-cols-3">
               {analysisSections.map((section) => (
-                <Card key={section.title} className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+                <Card key={section.title} className="rounded-3xl border border-border bg-card shadow-sm">
                   <CardHeader className="pb-1">
-                    <CardTitle className="text-base font-semibold text-slate-900">{section.title}</CardTitle>
+                    <CardTitle className="text-base font-semibold text-foreground">{section.title}</CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0 text-sm leading-relaxed text-slate-600">
+                  <CardContent className="pt-0 text-sm leading-relaxed text-muted-foreground">
                     {section.content}
                   </CardContent>
                 </Card>
@@ -628,3 +632,4 @@ export default function RiskAnalysisPage() {
     </div>
   )
 }
+

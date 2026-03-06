@@ -40,6 +40,10 @@ const titleFromPathname = (pathname: string) => {
     return mapped
   }
 
+  if (pathname.startsWith("/family-health/members/")) {
+    return "Family Health"
+  }
+
   if (pathname.startsWith("/profile")) {
     return "Profile"
   }

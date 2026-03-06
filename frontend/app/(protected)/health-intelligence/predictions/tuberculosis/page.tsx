@@ -69,47 +69,6 @@ const getNormalProbability = (
     normalizeLabel(item.label).includes("normal"),
   )?.probability ?? null
 
-const buildReportLines = (
-  symptoms: TbSymptoms,
-  notes: string,
-  file: File | null,
-  prediction: TTuberculosisPredictionResponse | null,
-) => {
-  if (!prediction) return []
-
-  const tbProbability = getTuberculosisProbability(prediction) ?? 0
-  const normalProbability = getNormalProbability(prediction)
-  const lines: string[] = [
-    `Generated: ${new Date().toLocaleDateString("en-US")}`,
-    "",
-    "Summary",
-    `Risk level: ${prediction.riskLevel}`,
-    `Prediction: ${prediction.prediction}`,
-    `TB probability: ${tbProbability}%`,
-    `Normal probability: ${normalProbability !== null ? `${normalProbability}%` : "N/A"}`,
-    "",
-    "Symptoms",
-    `Persistent cough: ${symptoms.cough ? "Yes" : "No"}`,
-    `Fever: ${symptoms.fever ? "Yes" : "No"}`,
-    `Night sweats: ${symptoms.nightSweats ? "Yes" : "No"}`,
-    `Weight loss: ${symptoms.weightLoss ? "Yes" : "No"}`,
-    `Exposure history: ${symptoms.exposure ? "Yes" : "No"}`,
-    "",
-    "Input",
-    `Scan uploaded: ${file ? "Yes" : "No"}`,
-    "",
-    "Insights",
-    ...prediction.insights.map(
-      (item, index) => `${index + 1}. ${item.title} - ${item.description}`,
-    ),
-  ]
-
-  if (notes.trim()) {
-    lines.push("", "Notes", notes.trim())
-  }
-  return lines
-}
-
 export default function TuberculosisPredictionPage() {
   const [symptoms, setSymptoms] = useState<TbSymptoms>(initialSymptoms)
   const [notes, setNotes] = useState("")
@@ -143,9 +102,79 @@ export default function TuberculosisPredictionPage() {
         : "Model indicates lower TB likelihood on this scan."
     : "Run analysis to view imaging prediction and guidance."
 
-  const reportLines = useMemo(
-    () => buildReportLines(symptoms, notes, file, prediction),
-    [symptoms, notes, file, prediction],
+  const reportMetrics = useMemo(
+    () => [
+      {
+        investigation: "Predicted TB probability",
+        result: analysisRequested && tbProbability !== null ? `${tbProbability}` : "N/A",
+        reference: "<35 low | 35-59 moderate | >=60 high",
+        status: analysisRequested && prediction ? riskLevel : "Pending",
+        unit: "%",
+      },
+      {
+        investigation: "Normal class probability",
+        result: analysisRequested && normalProbability !== null ? `${normalProbability}` : "N/A",
+        reference: "Complementary class",
+        status: analysisRequested && prediction ? "Computed" : "Pending",
+        unit: "%",
+      },
+      {
+        investigation: "Persistent cough",
+        result: symptoms.cough ? "Present" : "Absent",
+        reference: "Clinical symptom",
+        status: symptoms.cough ? "Positive" : "Negative",
+        unit: "",
+      },
+      {
+        investigation: "Fever / night sweats",
+        result: symptoms.fever || symptoms.nightSweats ? "Present" : "Absent",
+        reference: "Clinical symptom",
+        status: symptoms.fever || symptoms.nightSweats ? "Positive" : "Negative",
+        unit: "",
+      },
+      {
+        investigation: "Weight loss / exposure",
+        result: symptoms.weightLoss || symptoms.exposure ? "Present" : "Absent",
+        reference: "Clinical symptom",
+        status: symptoms.weightLoss || symptoms.exposure ? "Positive" : "Negative",
+        unit: "",
+      },
+      {
+        investigation: "Scan uploaded",
+        result: file ? "Yes" : "No",
+        reference: "Required for inference",
+        status: file ? "Available" : "Missing",
+        unit: "",
+      },
+    ],
+    [analysisRequested, tbProbability, normalProbability, prediction, riskLevel, symptoms, file],
+  )
+
+  const reportComments = useMemo(
+    () => [
+      analysisRequested && prediction
+        ? `${riskLevel} tuberculosis risk generated from scan + symptom profile.`
+        : "Analysis pending. Upload scan and run the model to generate interpretation.",
+      "This result is screening support and must be correlated with clinician-guided diagnostics.",
+    ],
+    [analysisRequested, prediction, riskLevel],
+  )
+
+  const reportFindings = useMemo(
+    () =>
+      prediction?.insights?.length
+        ? prediction.insights.map((item) => `${item.title}: ${item.description}`)
+        : ["No model findings available."],
+    [prediction],
+  )
+
+  const reportRecommendations = useMemo(
+    () => [
+      "Confirm high-risk output with laboratory and clinician-guided TB workup.",
+      "Track symptom persistence and progression daily.",
+      "Upload additional scan follow-ups when available.",
+    ],
+    [],
   )
 
   const handleAnalyze = () => {
@@ -179,10 +208,7 @@ export default function TuberculosisPredictionPage() {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <ShieldAlert className="h-4 w-4" />
-                Respiratory detection model
-              </div>
+
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                 Tuberculosis Prediction
               </h1>
@@ -190,7 +216,6 @@ export default function TuberculosisPredictionPage() {
                 Upload MRI or chest scan images and capture symptom signals for AI inference.
               </p>
             </div>
-            <Badge className="bg-rose-100 text-rose-700">Imaging required</Badge>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,0.55fr)_minmax(0,0.45fr)]">
@@ -310,7 +335,22 @@ export default function TuberculosisPredictionPage() {
                   <ReportDownloadButton
                     title="Tuberculosis Risk Report"
                     filename="tuberculosis-risk-report.pdf"
-                    lines={reportLines}
+                    patient={{
+                      name: "Member",
+                      age: "N/A",
+                      sex: "N/A",
+                      pid: "TB-001",
+                    }}
+                    meta={{
+                      module: "Tuberculosis Prediction",
+                      referredBy: "Vaidya AI",
+                      collectedAt: new Date().toLocaleDateString("en-US"),
+                    }}
+                    metrics={reportMetrics}
+                    comments={reportComments}
+                    findings={reportFindings}
+                    recommendations={reportRecommendations}
+                    notes={notes.trim() ? [notes.trim()] : []}
                     disabled={!prediction}
                     className="w-full rounded-full"
                   />

@@ -20,6 +20,7 @@ export interface IUserRepository {
   createUser(userData: Partial<UserType>): Promise<UserDocument>;
   getUserByEmail(email: string): Promise<UserDocument | null>;
   getUserByGoogleId(googleId: string): Promise<UserDocument | null>;
+  getUserByStripeCustomerId(stripeCustomerId: string): Promise<UserDocument | null>;
   getUserById(id: string): Promise<UserType | null>;
   getUsersByIds(
     ids: string[]
@@ -60,6 +61,12 @@ export class UserRepository implements IUserRepository {
 
   async getUserByGoogleId(googleId: string): Promise<UserDocument | null> {
     return User.findOne({ googleId });
+  }
+
+  async getUserByStripeCustomerId(
+    stripeCustomerId: string,
+  ): Promise<UserDocument | null> {
+    return User.findOne({ stripeCustomerId });
   }
 
   async getUserById(id: string): Promise<UserDocument | null> {

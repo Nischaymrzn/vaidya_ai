@@ -62,7 +62,6 @@ export function UsersClient() {
                   {loading ? "—" : pagination?.total ?? 0}
                 </p>
               </div>
-              <Users className="h-8 w-8 text-muted-foreground/50" />
             </div>
           </CardContent>
         </Card>
@@ -75,7 +74,6 @@ export function UsersClient() {
                   {loading ? "—" : users.length}
                 </p>
               </div>
-              <UserCheck className="h-8 w-8 text-muted-foreground/50" />
             </div>
           </CardContent>
         </Card>
@@ -88,7 +86,6 @@ export function UsersClient() {
                   {loading ? "—" : users.filter((u) => u.role === Role.ADMIN).length}
                 </p>
               </div>
-              <ShieldCheck className="h-8 w-8 text-muted-foreground/50" />
             </div>
           </CardContent>
         </Card>

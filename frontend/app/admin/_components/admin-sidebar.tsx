@@ -59,9 +59,7 @@ export function AdminSidebar() {
               collapsed && "flex-col px-0",
             )}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-              <Image src={logo} alt="Vaidya logo" width={24} height={24} />
-            </div>
+            <Image src={logo} alt="Vaidya logo" width={28} height={28} className="shrink-0" />
             <div className={cn("flex flex-col gap-0.5 transition-opacity", collapsed && "sr-only")}>
               <span className="text-xl font-semibold tracking-tight text-foreground">
                 Vaidya Admin

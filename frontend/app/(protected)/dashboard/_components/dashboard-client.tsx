@@ -58,7 +58,7 @@ export function DashboardClient({
   const firstName = userName.split(" ")[0] || "there"
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-background">
       <div className="w-full px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div className="space-y-6">
           <DashboardHeader greeting={greeting} firstName={firstName} />

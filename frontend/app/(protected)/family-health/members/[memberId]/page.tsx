@@ -51,6 +51,58 @@ const formatValue = (value?: number | null, suffix?: string) => {
   return `${value}${suffix ?? ""}`
 }
 
+const clampScore = (value: number) => Math.max(0, Math.min(100, Math.round(value)))
+
+const toNumber = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) ? value : undefined
+
+const deriveScoreFromVitals = (vitals?: any | null) => {
+  if (!vitals) return null
+
+  const systolic = toNumber(vitals.systolicBp)
+  const diastolic = toNumber(vitals.diastolicBp)
+  const heartRate = toNumber(vitals.heartRate)
+  const glucose = toNumber(vitals.glucoseLevel)
+  const bmi = toNumber(vitals.bmi)
+
+  const hasAnySignal = [systolic, diastolic, heartRate, glucose, bmi].some(
+    (value) => typeof value === "number",
+  )
+  if (!hasAnySignal) return null
+
+  let score = 78
+
+  if (typeof systolic === "number" && typeof diastolic === "number") {
+    if (systolic >= 90 && systolic <= 120 && diastolic >= 60 && diastolic <= 80) score += 5
+    else if (systolic >= 140 || diastolic >= 90) score -= 18
+    else if (systolic >= 130 || diastolic >= 85) score -= 10
+    else if (systolic < 90 || diastolic < 60) score -= 8
+  }
+
+  if (typeof heartRate === "number") {
+    if (heartRate >= 60 && heartRate <= 100) score += 4
+    else if (heartRate > 110) score -= 12
+    else if (heartRate > 100) score -= 6
+    else if (heartRate < 50) score -= 10
+  }
+
+  if (typeof glucose === "number") {
+    if (glucose >= 70 && glucose <= 99) score += 4
+    else if (glucose >= 126) score -= 12
+    else if (glucose >= 100) score -= 5
+    else if (glucose < 70) score -= 10
+  }
+
+  if (typeof bmi === "number") {
+    if (bmi >= 18.5 && bmi <= 24.9) score += 4
+    else if (bmi >= 30) score -= 10
+    else if (bmi >= 25) score -= 4
+    else if (bmi < 18.5) score -= 6
+  }
+
+  return clampScore(score)
+}
+
 const formatName = (value?: string | null) => {
   if (!value) return "Member"
   return value
@@ -79,6 +131,13 @@ const mergeVitals = (base?: any | null, override?: any | null) => {
   }
 }
 
+const getStatusMeta = (status?: string | null) => {
+  if (status === "stable" || status === "warning" || status === "critical") {
+    return statusMeta[status]
+  }
+  return statusMeta.warning
+}
+
 export default function FamilyMemberPage() {
   const router = useRouter()
   const params = useParams()
@@ -87,6 +146,7 @@ export default function FamilyMemberPage() {
   const [members, setMembers] = useState<Array<any>>([])
   const [currentUserRole, setCurrentUserRole] = useState<"admin" | "member">("member")
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [familyHealthScore, setFamilyHealthScore] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [medicalRecords, setMedicalRecords] = useState<TMedicalRecord[]>([])
@@ -102,6 +162,13 @@ export default function FamilyMemberPage() {
       setLoading(true)
       const result = await getFamilyGroupSummary()
       if (result.success && result.data) {
+        const backendFamilyScore =
+          typeof result.data.familyScore === "number"
+            ? result.data.familyScore
+            : typeof result.data.group?.score === "number"
+              ? result.data.group.score
+              : null
+        setFamilyHealthScore(backendFamilyScore)
         setMembers(result.data.members || [])
         if (result.data.currentUser?.role) {
           setCurrentUserRole(result.data.currentUser.role)
@@ -133,7 +200,7 @@ export default function FamilyMemberPage() {
   }, [memberId])
 
   useEffect(() => {
-    const canView = memberId && memberId === currentUserId
+    const canView = Boolean(memberId && (memberId === currentUserId || currentUserRole === "admin"))
     if (!canView) {
       setMedicalRecords([])
       setMedicalRecordsTotalPages(1)
@@ -143,7 +210,11 @@ export default function FamilyMemberPage() {
     setRecordsLoading(true)
     const loadRecords = async () => {
       try {
-        const result = await getMedicalRecords({ page: medicalRecordsPage, limit: 4 })
+        const result = await getMedicalRecords({
+          page: medicalRecordsPage,
+          limit: 4,
+          userId: currentUserRole === "admin" ? memberId : undefined,
+        })
         if (result.success && result.data) {
           setMedicalRecords(result.data)
           setMedicalRecordsTotalPages(result.pagination?.totalPages ?? 1)
@@ -156,10 +227,10 @@ export default function FamilyMemberPage() {
       }
     }
     loadRecords()
-  }, [memberId, currentUserId, medicalRecordsPage])
+  }, [memberId, currentUserId, currentUserRole, medicalRecordsPage])
 
   useEffect(() => {
-    const canView = memberId && memberId === currentUserId
+    const canView = Boolean(memberId && (memberId === currentUserId || currentUserRole === "admin"))
     if (!canView) {
       setAllergies([])
       setMedications([])
@@ -167,14 +238,14 @@ export default function FamilyMemberPage() {
     }
     const loadMemberDetails = async () => {
       const [allergyResult, medicationResult] = await Promise.all([
-        getAllergies(),
-        getMedications(),
+        getAllergies({ userId: currentUserRole === "admin" ? memberId : undefined }),
+        getMedications({ userId: currentUserRole === "admin" ? memberId : undefined }),
       ])
       setAllergies(allergyResult.success ? allergyResult.data ?? [] : [])
       setMedications(medicationResult.success ? medicationResult.data ?? [] : [])
     }
     loadMemberDetails()
-  }, [memberId, currentUserId])
+  }, [memberId, currentUserId, currentUserRole])
 
   const member = useMemo(
     () => members.find((item) => item.userId === memberId) ?? members[0],
@@ -195,21 +266,68 @@ export default function FamilyMemberPage() {
     return base
   }
 
-  const canViewMemberDetails = Boolean(member?.userId && member.userId === currentUserId)
+  const canViewMemberDetails = Boolean(
+    member?.userId &&
+    (member.userId === currentUserId || currentUserRole === "admin"),
+  )
+
+  const memberScoreById = useMemo(() => {
+    const backendScores = members
+      .map((item) =>
+        typeof item.healthScore === "number" && Number.isFinite(item.healthScore)
+          ? clampScore(item.healthScore)
+          : null,
+      )
+      .filter((score): score is number => typeof score === "number")
+
+    const backendScoresAreUniform =
+      backendScores.length > 1 &&
+      new Set(backendScores).size === 1 &&
+      (typeof familyHealthScore !== "number" ||
+        backendScores[0] === clampScore(familyHealthScore))
+
+    const scores = new Map<string, number | null>()
+    members.forEach((item) => {
+      const backendScore =
+        typeof item.healthScore === "number" && Number.isFinite(item.healthScore)
+          ? clampScore(item.healthScore)
+          : null
+
+      const baseVitals = item.latestVitals ?? item.recentVitals?.[0] ?? null
+      const resolvedVitals =
+        item.userId && item.userId === currentUserId
+          ? mergeVitals(baseVitals, currentUserVitals)
+          : baseVitals
+      const derivedScore = deriveScoreFromVitals(resolvedVitals)
+
+      const effectiveScore =
+        backendScoresAreUniform || backendScore === null
+          ? derivedScore ?? backendScore
+          : backendScore
+
+      scores.set(item.userId, effectiveScore ?? null)
+    })
+    return scores
+  }, [members, familyHealthScore, currentUserId, currentUserVitals])
 
   const familyAvgScore = useMemo(() => {
     if (!members.length) return 0
     return Math.round(
-      members.reduce((sum, item) => sum + (item.healthScore ?? 0), 0) / members.length
+      members.reduce((sum, item) => sum + (memberScoreById.get(item.userId) ?? 0), 0) / members.length
     )
-  }, [members])
+  }, [members, memberScoreById])
+
+  const familyScore = useMemo(() => {
+    if (typeof familyHealthScore === "number") return familyHealthScore
+    return familyAvgScore
+  }, [familyHealthScore, familyAvgScore])
 
   const scoreComparisonData = useMemo(
     () => [
-      { name: "Member", score: member?.healthScore ?? 0 },
-      { name: "Family Avg", score: familyAvgScore ?? 0 },
+      { name: "Member", score: member?.userId ? (memberScoreById.get(member.userId) ?? 0) : 0 },
+      { name: "Family Score", score: familyScore ?? 0 },
     ],
-    [member, familyAvgScore]
+    [member, familyScore, memberScoreById]
   )
 
   const vitalsMetricData = useMemo(() => {
@@ -289,7 +407,7 @@ export default function FamilyMemberPage() {
     )
   }
 
-  const meta = statusMeta[member.status || "warning"]
+  const meta = getStatusMeta(member.status)
   const vitals = resolveMemberVitals(member)
   const bp = vitals?.systolicBp && vitals?.diastolicBp
     ? `${vitals.systolicBp}/${vitals.diastolicBp}`
@@ -326,10 +444,7 @@ export default function FamilyMemberPage() {
             <Link href="/family-health" className="text-sm font-semibold text-primary">
               Back to family overview
             </Link>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className={meta.badge}>{meta.label}</Badge>
-              <Badge className="bg-blue-50 text-blue-700">Vitals {vitalsSummary}</Badge>
-            </div>
+
           </div>
 
           <section className="grid gap-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,0.3fr)]">
@@ -371,9 +486,9 @@ export default function FamilyMemberPage() {
                                 ? "Admin"
                                 : relation
                             return (
-                            <SelectItem key={item.userId} value={item.userId}>
-                              {formatName(item.name)} ({label})
-                            </SelectItem>
+                              <SelectItem key={item.userId} value={item.userId}>
+                                {formatName(item.name)} ({label})
+                              </SelectItem>
                             )
                           })}
                         </SelectContent>
@@ -430,7 +545,9 @@ export default function FamilyMemberPage() {
                           </div>
                           <div className="flex items-center justify-between">
                             <span>Health score</span>
-                            <span className="font-semibold text-slate-900">{member.healthScore ?? "--"}</span>
+                            <span className="font-semibold text-slate-900">
+                              {member.userId ? (memberScoreById.get(member.userId) ?? "--") : "--"}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -525,7 +642,7 @@ export default function FamilyMemberPage() {
                             </LineChart>
                           </ChartContainer>
                           <div className="rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-                            Family average score: {familyAvgScore || "--"}
+                            Family health score: {familyScore || "--"}
                           </div>
                         </CardContent>
                       </Card>
@@ -946,23 +1063,24 @@ export default function FamilyMemberPage() {
             </Card>
 
             <aside className="space-y-4">
-              <Card className="rounded-3xl border-0 bg-white shadow-sm">
+              <Card className="rounded-3xl border border-border bg-card shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold text-slate-900">Member AI insights</CardTitle>
-                  <CardDescription className="text-sm text-slate-500">
+                  <CardTitle className="text-base font-semibold text-foreground">Member AI insights</CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground">
                     Personalized guidance based on recent data.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {insights.map((insight) => (
-                    <div key={insight.title} className="rounded-2xl bg-blue-50/70 px-4 py-3">
+                    <div
+                      key={insight.title}
+                      className="rounded-2xl border border-border bg-muted/40 px-4 py-3"
+                    >
                       <div className="flex items-start gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                          <Sparkles className="h-4 w-4" />
-                        </div>
+
                         <div className="space-y-1">
-                          <p className="text-sm font-semibold text-slate-900">{insight.title}</p>
-                          <p className="text-xs text-slate-500">{insight.detail}</p>
+                          <p className="text-sm font-semibold text-foreground">{insight.title}</p>
+                          <p className="text-xs text-muted-foreground">{insight.detail}</p>
                         </div>
                       </div>
                     </div>

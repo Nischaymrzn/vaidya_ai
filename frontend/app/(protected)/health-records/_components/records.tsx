@@ -473,11 +473,12 @@ export default function Records() {
     setScanLoading(false)
 
     if (scanResult.success && scanResult.data) {
-      const recordType = normalizeRecordTypeLabel(scanResult.data.recordType)
+      const scanData = scanResult.data
+      const recordType = normalizeRecordTypeLabel(scanData.recordType)
       const normalizedCategory = normalizeCategoryLabel(recordType)
       const structured =
-        scanResult.data.structured && typeof scanResult.data.structured === "object"
-          ? scanResult.data.structured
+        scanData.structured && typeof scanData.structured === "object"
+          ? scanData.structured
           : {}
       const mappedStructured: Record<string, string> = {}
       Object.entries(structured).forEach(([key, value]) => {
@@ -492,14 +493,11 @@ export default function Records() {
       setAiStructured(mappedStructured)
       setAiDraft((prev) => ({
         ...prev,
-        title:
-          scanResult.data?.text && !baseName
-            ? "Scanned record"
-            : prev.title,
+        title: scanData.text && !baseName ? "Scanned record" : prev.title,
         category: normalizedCategory ?? prev.category,
-        provider: scanResult.data.provider ?? prev.provider,
-        date: scanResult.data.recordDate ?? prev.date,
-        content: scanResult.data.summary ?? scanResult.data.text ?? prev.content,
+        provider: scanData.provider ?? prev.provider,
+        date: scanData.recordDate ?? prev.date,
+        content: scanData.summary ?? scanData.text ?? prev.content,
       }))
     } else {
       toast.error(scanResult.message || "Failed to scan image")
@@ -950,16 +948,16 @@ export default function Records() {
   }
 
   return (
-    <div className="flex w-full flex-1 flex-col bg-linear-to-b from-primary/5 via-slate-50/50 to-white">
-      <div className="border-b border-slate-200/70 bg-background/80 backdrop-blur">
+    <div className="flex w-full flex-1 flex-col bg-linear-to-b from-primary/5 via-slate-50/50 to-white dark:from-background dark:via-background dark:to-background">
+      <div className="border-b border-border bg-background/80 backdrop-blur">
         <div className="flex w-full flex-col gap-4 px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-2">
 
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 Records center
               </h1>
-              <p className="max-w-3xl text-sm text-slate-500">
+              <p className="max-w-3xl text-sm text-muted-foreground">
                 Store every document, scan with AI, and keep a clean timeline
                 of your health history. Everything is searchable and shareable.
               </p>
@@ -2550,15 +2548,7 @@ export default function Records() {
                     Suggestions based on uploaded records only.
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="xs"
-                  className="rounded-full border-primary/30 text-primary hover:bg-primary/10"
-                  onClick={() => refreshAiInsights(true)}
-                  disabled={aiInsightsLoading}
-                >
-                  Refresh
-                </Button>
+
               </div>
               <div className="space-y-3 px-5 py-4 text-sm">
                 {aiInsightsLoading ? (

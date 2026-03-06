@@ -20,6 +20,17 @@ export interface GoogleProfile {
   photos?: { value: string }[];
 }
 
+interface GoogleTokenInfo {
+  aud?: string;
+  sub?: string;
+  email?: string;
+  email_verified?: string;
+  name?: string;
+  picture?: string;
+  iss?: string;
+  exp?: string;
+}
+
 export class UserServices {
   async createUser(data: CreateUserDTO) {
     const existingUser = await userRepository.getUserByEmail(data.email);
@@ -183,6 +194,64 @@ export class UserServices {
     const { accessToken, refreshToken } = GenerateTokens(payload);
     await userDataService.ensureUserData(String(user._id));
     return { accessToken, refreshToken, user: safeUser };
+  }
+
+  async loginWithGoogleIdToken(idToken: string) {
+    if (!idToken) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "idToken is required");
+    }
+
+    const response = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`,
+    );
+
+    if (!response.ok) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid Google id token");
+    }
+
+    const tokenInfo = (await response.json()) as GoogleTokenInfo;
+    const allowedAudiences = [
+      env.GOOGLE_CLIENT_ID,
+      env.GOOGLE_ANDROID_CLIENT_ID,
+    ].filter(Boolean);
+
+    if (!tokenInfo.aud || !allowedAudiences.includes(tokenInfo.aud)) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid Google audience");
+    }
+
+    if (
+      tokenInfo.iss !== "https://accounts.google.com" &&
+      tokenInfo.iss !== "accounts.google.com"
+    ) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid Google issuer");
+    }
+
+    if (!tokenInfo.sub || !tokenInfo.email) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "Google account information missing",
+      );
+    }
+
+    if (
+      tokenInfo.exp &&
+      Number.isFinite(Number(tokenInfo.exp)) &&
+      Number(tokenInfo.exp) * 1000 < Date.now()
+    ) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Google token expired");
+    }
+
+    return this.findOrCreateByGoogle({
+      id: tokenInfo.sub,
+      displayName: tokenInfo.name,
+      emails: [
+        {
+          value: tokenInfo.email,
+          verified: tokenInfo.email_verified === "true",
+        },
+      ],
+      photos: tokenInfo.picture ? [{ value: tokenInfo.picture }] : [],
+    });
   }
 
   async resetPassword(token?: string, newPassword?: string) {

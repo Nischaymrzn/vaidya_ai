@@ -11,6 +11,7 @@ export type FamilyMemberType = {
 export type FamilyGroupType = {
   name: string;
   adminId: string;
+  score?: number | null;
   members: FamilyMemberType[];
   createdAt?: Date;
   updatedAt?: Date;

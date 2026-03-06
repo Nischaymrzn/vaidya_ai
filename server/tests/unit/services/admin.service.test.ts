@@ -2,10 +2,12 @@ import { AdminUserService } from "../../../src/services/admin.service";
 import { UserRepository } from "../../../src/repositories/user.repository";
 import { bcryptUtil } from "../../../src/utils/bcrypt";
 import bcryptjs from "bcryptjs";
+import { UserDataService } from "../../../src/services/user-data.service";
 
 jest.mock("../../../src/repositories/user.repository");
 jest.mock("../../../src/utils/bcrypt");
 jest.mock("bcryptjs");
+jest.mock("../../../src/services/user-data.service");
 
 const UserRepositoryMock = UserRepository as jest.MockedClass<
   typeof UserRepository
@@ -13,6 +15,13 @@ const UserRepositoryMock = UserRepository as jest.MockedClass<
 
 const getRepo = () =>
   UserRepositoryMock.mock.instances[0] as jest.Mocked<UserRepository>;
+
+const UserDataServiceMock = UserDataService as jest.MockedClass<
+  typeof UserDataService
+>;
+
+const getUserDataService = () =>
+  UserDataServiceMock.mock.instances[0] as jest.Mocked<UserDataService>;
 
 describe("AdminUserService", () => {
   beforeEach(() => {
@@ -24,6 +33,9 @@ describe("AdminUserService", () => {
     repo.createUser?.mockReset();
     repo.updateOneUser?.mockReset();
     repo.deleteOneUser?.mockReset();
+    const userDataService = getUserDataService();
+    userDataService.ensureUserData?.mockReset();
+    userDataService.ensureUserData?.mockResolvedValue({} as any);
   });
 
   it("should create a user with hashed password", async () => {

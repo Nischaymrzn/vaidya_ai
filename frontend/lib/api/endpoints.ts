@@ -10,6 +10,11 @@ export const API = {
     REQUEST_PASSWORD_RESET: "/auth/request-password-reset",
     RESET_PASSWORD: (token: string) => `/auth/reset-password/${token}`,
   },
+  PAYMENTS: {
+    STATUS: "/payments/status",
+    CHECKOUT_SESSION: "/payments/checkout-session",
+    WEBHOOK: "/payments/webhook",
+  },
   ADMIN: {
     USERS: {
       LIST: (params?: { page?: number; limit?: number }) =>
@@ -32,17 +37,26 @@ export const API = {
     UPDATE: "/user-data",
   },
   MEDICAL_RECORDS: {
-    LIST: (params?: { page?: number; limit?: number }) =>
-      params
-        ? `/medical-records?page=${params.page ?? 1}&limit=${params.limit ?? 10}`
-        : "/medical-records",
+    LIST: (params?: { page?: number; limit?: number; userId?: string }) => {
+      const query = new URLSearchParams({
+        page: String(params?.page ?? 1),
+        limit: String(params?.limit ?? 10),
+      });
+      if (params?.userId) {
+        query.set("userId", params.userId);
+      }
+      return `/medical-records?${query.toString()}`;
+    },
     GET: (id: string) => `/medical-records/${id}`,
     CREATE: "/medical-records",
     UPDATE: (id: string) => `/medical-records/${id}`,
     DELETE: (id: string) => `/medical-records/${id}`,
   },
   ALLERGIES: {
-    LIST: "/allergies",
+    LIST: (params?: { userId?: string }) =>
+      params?.userId
+        ? `/allergies?userId=${encodeURIComponent(params.userId)}`
+        : "/allergies",
     GET: (id: string) => `/allergies/${id}`,
     CREATE: "/allergies",
     UPDATE: (id: string) => `/allergies/${id}`,
@@ -64,7 +78,10 @@ export const API = {
     DELETE: (id: string) => `/symptoms/${id}`,
   },
   MEDICATIONS: {
-    LIST: "/medications",
+    LIST: (params?: { userId?: string }) =>
+      params?.userId
+        ? `/medications?userId=${encodeURIComponent(params.userId)}`
+        : "/medications",
     GET: (id: string) => `/medications/${id}`,
     CREATE: "/medications",
     UPDATE: (id: string) => `/medications/${id}`,

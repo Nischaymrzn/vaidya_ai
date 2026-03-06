@@ -125,6 +125,81 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Global dark compatibility for pages that still use explicit light slate/white classes. */
+.dark .bg-white {
+  background-color: oklch(0.205 0 0) !important;
+}
+
+.dark .bg-white\/95 {
+  background-color: oklch(0.205 0 0 / 0.95) !important;
+}
+
+.dark .bg-white\/90 {
+  background-color: oklch(0.205 0 0 / 0.9) !important;
+}
+
+.dark .bg-white\/80 {
+  background-color: oklch(0.205 0 0 / 0.8) !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/60,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/80 {
+  background-color: oklch(0.235 0 0) !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: oklch(0.265 0 0) !important;
+}
+
+.dark .bg-slate-200,
+.dark .bg-slate-300 {
+  background-color: oklch(0.315 0 0) !important;
+}
+
+.dark .bg-slate-900 {
+  background-color: oklch(0.16 0 0) !important;
+}
+
+.dark [class*="text-slate-900"] {
+  color: oklch(0.975 0 0) !important;
+}
+
+.dark [class*="text-slate-700"] {
+  color: oklch(0.9 0 0) !important;
+}
+
+.dark [class*="text-slate-600"] {
+  color: oklch(0.83 0 0) !important;
+}
+
+.dark [class*="text-slate-500"] {
+  color: oklch(0.75 0 0) !important;
+}
+
+.dark [class*="text-slate-400"] {
+  color: oklch(0.67 0 0) !important;
+}
+
+.dark [class*="text-slate-300"] {
+  color: oklch(0.6 0 0) !important;
+}
+
+.dark [class*="border-slate-300"],
+.dark [class*="border-slate-200"] {
+  border-color: oklch(1 0 0 / 0.16) !important;
+}
+
+.dark [class*="hover:bg-slate-50"]:hover {
+  background-color: oklch(0.27 0 0) !important;
+}
+
+.dark [class*="hover:text-slate-700"]:hover {
+  color: oklch(0.97 0 0) !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -140,6 +215,10 @@
   scrollbar-width: thin;
 }
 
+.dark .scrollbar-light {
+  scrollbar-color: #3b3b3b transparent;
+}
+
 .scrollbar-light::-webkit-scrollbar {
   height: 8px;
 }
@@ -153,4 +232,8 @@
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: content-box;
+}
+
+.dark .scrollbar-light::-webkit-scrollbar-thumb {
+  background-color: #3b3b3b;
 }

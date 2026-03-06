@@ -15,15 +15,36 @@ import { diseasePredictionService } from "./services/disease-prediction.service"
 
 const app: Application = express();
 
+const allowedCorsOrigins = Array.from(
+  new Set(
+    [
+      ...env.CLIENT_URL.split(",").map((origin) => origin.trim()),
+      ...(env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
+    ].filter(Boolean),
+  ),
+);
+
 app.use(rateLimiter);
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      return callback(null, allowedCorsOrigins.includes(origin));
+    },
     credentials: true,
   }),
 );
 app.use(cookieParser());
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req, _res, buf) => {
+      const requestUrl = (req as any).originalUrl ?? req.url ?? "";
+      if (requestUrl.includes("/payments/webhook")) {
+        (req as any).rawBody = buf;
+      }
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 
 configurePassport();

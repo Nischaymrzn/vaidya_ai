@@ -1,9 +1,11 @@
 "use client"
 
 import Image from "next/image"
-import { useEffect, useMemo, useRef, useState } from "react"
+import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import {
+  ArrowLeft,
   Camera,
   CameraOff,
   Captions,
@@ -91,10 +93,12 @@ export default function DoctorConsultPage() {
   const transcriptScrollRef = useRef<HTMLDivElement | null>(null)
   const transcriptEndRef = useRef<HTMLDivElement | null>(null)
 
-  const supportsSpeech = useMemo(() => {
-    if (typeof window === "undefined") return false
-    return (
-      "webkitSpeechRecognition" in window || "SpeechRecognition" in window
+  const [supportsSpeech, setSupportsSpeech] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    setSupportsSpeech(
+      "webkitSpeechRecognition" in window || "SpeechRecognition" in window,
     )
   }, [])
 
@@ -142,19 +146,21 @@ export default function DoctorConsultPage() {
       const data = await response.json()
       const reply = data?.reply?.trim() || "I'm sorry, I couldn't respond."
       setMessages((prev) => {
-        const updated = [...prev, { role: "assistant", content: reply }]
+        const assistantReply: ChatMessage = { role: "assistant", content: reply }
+        const updated: ChatMessage[] = [...prev, assistantReply]
         conversationHistoryRef.current = updated
         return updated
       })
       speak(reply)
     } catch (error) {
       setMessages((prev) => {
-        const updated = [
+        const fallbackReply: ChatMessage = {
+          role: "assistant",
+          content: "I ran into an error. Please try again in a moment.",
+        }
+        const updated: ChatMessage[] = [
           ...prev,
-          {
-            role: "assistant",
-            content: "I ran into an error. Please try again in a moment.",
-          },
+          fallbackReply,
         ]
         conversationHistoryRef.current = updated
         return updated
@@ -166,7 +172,7 @@ export default function DoctorConsultPage() {
   }
 
   useEffect(() => {
-    if (!supportsSpeech) return
+    if (supportsSpeech !== true) return
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 
@@ -176,7 +182,7 @@ export default function DoctorConsultPage() {
     recognition.interimResults = true
     recognition.lang = "en-US"
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       if (!micOnRef.current || isSpeakingRef.current || isThinkingRef.current) {
         return
       }
@@ -251,27 +257,32 @@ export default function DoctorConsultPage() {
   }, [messages, interimText, isThinking])
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-[1440px] px-4 pb-8 pt-5 sm:px-6 lg:px-8">
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-                Doctor: {doctor.name}
-              </h1>
-              <p className="text-xs text-slate-500">{doctor.specialty}</p>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground">
+                  <Link href="/health-intelligence/ai-doctors">
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="sr-only">Back</span>
+                  </Link>
+                </Button>
+                <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                  Doctor: {doctor.name}
+                </h1>
+              </div>
+              <p className="text-xs text-muted-foreground pl-10">{doctor.specialty}</p>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-500 shadow-sm">
-              <Clock className="h-3.5 w-3.5" />
-              00:05:40
-            </div>
+
           </div>
 
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_520px] xl:items-stretch">
             <div className="min-w-0 space-y-3">
 
               <div className="grid gap-4 lg:grid-rows-[auto_auto]">
-                <Card className="overflow-hidden rounded-3xl border-slate-200/80 bg-white shadow-sm py-0">
+                <Card className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm py-0">
                   <CardContent className="relative p-0 h-full">
                     <div className="relative aspect-[16/6.5] w-full overflow-hidden bg-gradient-to-br from-slate-900 via-slate-700 to-slate-600">
                       <Image
@@ -283,7 +294,7 @@ export default function DoctorConsultPage() {
                         priority
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
-                      <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">
+                      <div className="absolute left-4 top-4 rounded-full bg-card/90 px-3 py-1 text-xs font-semibold text-foreground">
                         {doctor.name}
                       </div>
                       <div className="absolute bottom-4 left-4 max-w-[80%] rounded-2xl bg-black/60 px-4 py-2 text-sm text-white">
@@ -293,15 +304,15 @@ export default function DoctorConsultPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="overflow-hidden rounded-3xl border-slate-200/80 bg-white shadow-sm py-0 overflow-y-hidden">
+                <Card className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm py-0 overflow-y-hidden">
                   <CardContent className="relative p-0">
                     <div
                       className={`relative aspect-[16/6.5] w-full ${cameraOn
-                        ? "bg-gradient-to-br from-slate-200 via-slate-100 to-white"
+                        ? "bg-gradient-to-br from-muted/80 via-muted/40 to-background"
                         : "bg-slate-900"
                         }`}
                     >
-                      <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">
+                      <div className="absolute left-4 top-4 rounded-full bg-card/90 px-3 py-1 text-xs font-semibold text-foreground">
                         {patientName}
                       </div>
                       {shareOn ? (
@@ -311,11 +322,11 @@ export default function DoctorConsultPage() {
                       ) : null}
                       <div className="absolute inset-0 flex items-center justify-center">
                         {cameraOn ? (
-                          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-2xl font-semibold text-slate-700 shadow-sm">
+                          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-card text-2xl font-semibold text-foreground shadow-sm">
                             {patientInitials}
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-white">
+                          <div className="flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-xs font-semibold text-white">
                             <CameraOff className="h-4 w-4" />
                             Camera off
                           </div>
@@ -328,7 +339,7 @@ export default function DoctorConsultPage() {
                           className={
                             micOn
                               ? "h-9 w-9 rounded-full border-primary/30 bg-primary/10 text-primary"
-                              : "h-9 w-9 rounded-full border-slate-200"
+                              : "h-9 w-9 rounded-full border-border"
                           }
                           aria-pressed={micOn}
                           onClick={() => setMicOn((prev) => !prev)}
@@ -336,7 +347,7 @@ export default function DoctorConsultPage() {
                           {micOn ? (
                             <Mic className="h-4 w-4 text-primary" />
                           ) : (
-                            <MicOff className="h-4 w-4 text-slate-600" />
+                            <MicOff className="h-4 w-4 text-muted-foreground" />
                           )}
                         </Button>
                         <Button
@@ -345,7 +356,7 @@ export default function DoctorConsultPage() {
                           className={
                             cameraOn
                               ? "h-9 w-9 rounded-full border-primary/30 bg-primary/10 text-primary"
-                              : "h-9 w-9 rounded-full border-slate-200"
+                              : "h-9 w-9 rounded-full border-border"
                           }
                           aria-pressed={cameraOn}
                           onClick={() => setCameraOn((prev) => !prev)}
@@ -353,7 +364,7 @@ export default function DoctorConsultPage() {
                           {cameraOn ? (
                             <Camera className="h-4 w-4 text-primary" />
                           ) : (
-                            <CameraOff className="h-4 w-4 text-slate-600" />
+                            <CameraOff className="h-4 w-4 text-muted-foreground" />
                           )}
                         </Button>
                         <Button
@@ -362,7 +373,7 @@ export default function DoctorConsultPage() {
                           className={
                             captionsOn
                               ? "h-9 w-9 rounded-full border-primary/30 bg-primary/10 text-primary"
-                              : "h-9 w-9 rounded-full border-slate-200"
+                              : "h-9 w-9 rounded-full border-border"
                           }
                           aria-pressed={captionsOn}
                           onClick={() => setCaptionsOn((prev) => !prev)}
@@ -370,7 +381,7 @@ export default function DoctorConsultPage() {
                           {captionsOn ? (
                             <Captions className="h-4 w-4 text-primary" />
                           ) : (
-                            <CaptionsOff className="h-4 w-4 text-slate-600" />
+                            <CaptionsOff className="h-4 w-4 text-muted-foreground" />
                           )}
                         </Button>
                         <Button
@@ -379,7 +390,7 @@ export default function DoctorConsultPage() {
                           className={
                             shareOn
                               ? "h-9 w-9 rounded-full border-primary/30 bg-primary/10 text-primary"
-                              : "h-9 w-9 rounded-full border-slate-200"
+                              : "h-9 w-9 rounded-full border-border"
                           }
                           aria-pressed={shareOn}
                           onClick={() => setShareOn((prev) => !prev)}
@@ -387,7 +398,7 @@ export default function DoctorConsultPage() {
                           {shareOn ? (
                             <ScreenShare className="h-4 w-4 text-primary" />
                           ) : (
-                            <ScreenShareOff className="h-4 w-4 text-slate-600" />
+                            <ScreenShareOff className="h-4 w-4 text-muted-foreground" />
                           )}
                         </Button>
                         <Button size="icon" className="h-9 w-9 rounded-full bg-rose-600 text-white hover:bg-rose-700">
@@ -401,28 +412,21 @@ export default function DoctorConsultPage() {
             </div>
 
             <aside className="min-w-0 space-y-3">
-              <Card className="overflow-hidden rounded-3xl border-slate-200/80 bg-white shadow-sm xl:h-[calc(100vh-220px)]">
+              <Card className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm xl:h-[calc(100vh-220px)]">
                 <CardContent className="flex h-full min-h-0 flex-col p-0">
-                  <div className="flex items-center justify-between border-b border-slate-200/70 px-4 py-3">
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3">
                     <div className="space-y-0.5">
-                      <p className="text-sm font-semibold text-slate-900">Live transcript</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-sm font-semibold text-foreground">Live transcript</p>
+                      <p className="text-xs text-muted-foreground">
                         Real-time voice summary &amp; notes
                       </p>
                     </div>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${captionsOn
-                        ? "bg-primary/10 text-primary"
-                        : "bg-slate-100 text-slate-500"
-                        }`}
-                    >
-                      {captionsOn ? "Active" : "Off"}
-                    </span>
+
                   </div>
 
                   <div
                     ref={transcriptScrollRef}
-                    className="flex-1 space-y-3 overflow-y-auto bg-slate-50/60 px-4 py-3"
+                    className="flex-1 space-y-3 overflow-y-auto bg-muted/30 px-4 py-3"
                   >
                     {captionsOn ? (
                       <>
@@ -435,11 +439,11 @@ export default function DoctorConsultPage() {
                             >
                               <div
                                 className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm ${isUser
-                                  ? "bg-primary/10 text-slate-900"
-                                  : "bg-white text-slate-700"
+                                  ? "bg-primary/10 text-foreground"
+                                  : "border border-border bg-muted/50 text-foreground"
                                   }`}
                               >
-                                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                                   {isUser ? "You" : doctor.name}
                                 </p>
                                 <p>{message.content}</p>
@@ -449,8 +453,8 @@ export default function DoctorConsultPage() {
                         })}
                         {interimText ? (
                           <div className="flex items-start justify-end gap-2">
-                            <div className="max-w-[85%] rounded-2xl bg-primary/10 px-4 py-2.5 text-sm text-slate-600">
-                              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                            <div className="max-w-[85%] rounded-2xl bg-primary/10 px-4 py-2.5 text-sm text-muted-foreground">
+                              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                                 You
                               </p>
                               <p>{interimText}</p>
@@ -459,8 +463,8 @@ export default function DoctorConsultPage() {
                         ) : null}
                         {isThinking ? (
                           <div className="flex items-start gap-2">
-                            <div className="max-w-[85%] rounded-2xl bg-white px-4 py-2.5 text-sm text-slate-500 shadow-sm">
-                              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                            <div className="max-w-[85%] rounded-2xl border border-border bg-muted/50 px-4 py-2.5 text-sm text-muted-foreground shadow-sm">
+                              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                                 {doctor.name}
                               </p>
                               <p>Thinking...</p>
@@ -470,21 +474,21 @@ export default function DoctorConsultPage() {
                         <div ref={transcriptEndRef} />
                       </>
                     ) : (
-                      <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white text-xs text-slate-500">
+                      <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
                         Captions are off.
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/70 px-4 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3">
                     <Button
                       variant="outline"
-                      className="h-9 rounded-full border-slate-200 px-4 text-xs font-semibold text-slate-700"
+                      className="h-9 rounded-full border-border px-4 text-xs font-semibold text-foreground"
                       onClick={stopSpeaking}
                       disabled={!isSpeaking}
                     >
                       Stop speaking
                     </Button>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-muted-foreground">
                       {isSpeaking
                         ? "AI is speaking. Mic is paused."
                         : micOn
@@ -492,7 +496,7 @@ export default function DoctorConsultPage() {
                           : "Mic is off."}
                     </span>
                   </div>
-                  {!supportsSpeech ? (
+                  {supportsSpeech === false ? (
                     <div className="mx-4 mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
                       Your browser does not support voice recognition. Use a Chromium-based browser.
                     </div>
@@ -506,3 +510,4 @@ export default function DoctorConsultPage() {
     </div>
   )
 }
+

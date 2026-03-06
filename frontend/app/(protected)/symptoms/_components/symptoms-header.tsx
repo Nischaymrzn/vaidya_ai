@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import type { TSymptoms } from "@/lib/definition";
 import { Plus } from "lucide-react";
 import { SymptomForm, type SymptomPayload } from "./symptom-form";
 
@@ -18,7 +19,7 @@ type SymptomsHeaderProps = {
   onCreate: (payload: SymptomPayload) => void;
   isPending: boolean;
   severityOptions: string[];
-  statusOptions: string[];
+  statusOptions: Array<NonNullable<TSymptoms["status"]>>;
 };
 
 export function SymptomsHeader({
@@ -32,10 +33,10 @@ export function SymptomsHeader({
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Symptom Tracker
         </h1>
-        <p className="mt-0.5 text-sm text-slate-500">
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Log symptoms, spot patterns, and keep your care timeline current.
         </p>
       </div>

@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TUser } from "@/lib/definition";
 import {
@@ -49,6 +52,60 @@ const supportLinks = [
 ];
 
 export function ProfileOverview({ user }: ProfileOverviewProps) {
+  const [isPremium, setIsPremium] = useState(Boolean(user.isPremium));
+  const [upgrading, setUpgrading] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadPaymentStatus = async () => {
+      try {
+        const response = await fetch("/api/premium", {
+          method: "GET",
+          cache: "no-store",
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!mounted) return;
+        setIsPremium(Boolean(payload?.data?.isPremium));
+      } catch {
+        // Keep server-provided state when status fetch fails.
+      }
+    };
+
+    loadPaymentStatus();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleUpgradeToPremium = async () => {
+    if (upgrading || isPremium) return;
+
+    setUpgrading(true);
+    setPaymentMessage(null);
+    try {
+      const response = await fetch("/api/premium", {
+        method: "POST",
+        cache: "no-store",
+      });
+      const payload = await response.json().catch(() => ({}));
+      const checkoutUrl = payload?.data?.checkoutUrl;
+
+      if (response.ok && payload?.success && checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        setPaymentMessage(
+          payload?.message || "Failed to start Stripe checkout.",
+        );
+      }
+    } catch {
+      setPaymentMessage("Failed to start Stripe checkout.");
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -69,8 +126,40 @@ export function ProfileOverview({ user }: ProfileOverviewProps) {
         <div>
           <h1 className="text-2xl font-bold text-foreground">{user.name}</h1>
           <p className="text-muted-foreground">{user.email}</p>
-          {user.number && (
-            <p className="text-sm text-muted-foreground mt-1">{user.number}</p>
+
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+
+            <Badge
+              className={
+                isPremium
+                  ? "bg-emerald-500 text-white"
+                  : "bg-muted text-muted-foreground"
+              }
+            >
+              Plan: {isPremium ? "Premium" : "Free"}
+            </Badge>
+          </div>
+          {!isPremium ? (
+            <div className="mt-2 space-y-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleUpgradeToPremium}
+                disabled={upgrading}
+              >
+                {upgrading ? "Redirecting to Stripe..." : "Upgrade to Premium"}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Premium unlocks disease report PDF downloads.
+              </p>
+              {paymentMessage ? (
+                <p className="text-xs text-muted-foreground">{paymentMessage}</p>
+              ) : null}
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Premium is active on your account.
+            </p>
           )}
         </div>
       </div>

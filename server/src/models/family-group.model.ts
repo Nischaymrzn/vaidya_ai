@@ -34,7 +34,7 @@ const familyMemberSchema = new mongoose.Schema<FamilyMemberDb>(
       ref: "User",
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const familyGroupSchema = new mongoose.Schema<FamilyGroupDb>(
@@ -49,12 +49,18 @@ const familyGroupSchema = new mongoose.Schema<FamilyGroupDb>(
       ref: "User",
       required: true,
     },
+    score: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
     members: {
       type: [familyMemberSchema],
       default: [],
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export type FamilyGroupDocument = HydratedDocument<FamilyGroupDb>;

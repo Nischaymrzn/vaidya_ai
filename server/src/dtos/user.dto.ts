@@ -47,8 +47,13 @@ export const resetPasswordDTO = z.object({
   newPassword: CreateUserDTO.shape.password,
 });
 
+export const googleMobileLoginDTO = z.object({
+  idToken: z.string().min(1, { message: "idToken is required" }),
+});
+
 export type RequestPasswordResetDTO = z.infer<typeof requestPasswordResetDTO>;
 export type ResetPasswordDTO = z.infer<typeof resetPasswordDTO>;
+export type GoogleMobileLoginDTO = z.infer<typeof googleMobileLoginDTO>;
 
-export const UpdateUserDto = UserSchema.partial(); 
+export const UpdateUserDto = UserSchema.partial();
 export type UpdateUserDto = z.infer<typeof UpdateUserDto>;

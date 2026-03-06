@@ -70,13 +70,13 @@ const formatStatus = (status?: string) => {
 const getSeverityTone = (severity?: string) => {
   switch (severity) {
     case "Severe":
-      return "bg-rose-50 text-rose-700";
+      return "bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300";
     case "Moderate":
-      return "bg-amber-50 text-amber-700";
+      return "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300";
     case "Mild":
-      return "bg-emerald-50 text-emerald-700";
+      return "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300";
     default:
-      return "bg-slate-100 text-slate-600";
+      return "bg-muted text-muted-foreground";
   }
 };
 
@@ -111,21 +111,21 @@ export function SymptomsTable({
   }, [searchTerm, severityFilter, filteredSymptoms.length]);
 
   return (
-    <Card className="w-full rounded-3xl border-slate-200/80 bg-white shadow-sm">
-      <CardHeader className="space-y-1.5 border-b border-slate-200/80 pb-2">
+    <Card className="w-full rounded-3xl border border-border bg-card shadow-sm">
+      <CardHeader className="space-y-1.5 border-b border-border pb-2">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <CardTitle className="text-base font-semibold text-slate-900">
+            <CardTitle className="text-base font-semibold text-foreground">
               Symptom history
             </CardTitle>
-            <CardDescription className="mt-0.5 text-sm text-slate-500">
+            <CardDescription className="mt-0.5 text-sm text-muted-foreground">
               {filteredSymptoms.length} of {symptoms.length} records
             </CardDescription>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-1 items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50 px-3 py-1">
-            <Search className="h-4 w-4 text-slate-400" />
+          <div className="flex flex-1 items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1">
+            <Search className="h-4 w-4 text-muted-foreground" />
             <Input
               className="h-6 w-full border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
               placeholder="Search by symptom or note..."
@@ -134,8 +134,8 @@ export function SymptomsTable({
             />
           </div>
           <Select value={severityFilter} onValueChange={onSeverityFilterChange}>
-            <SelectTrigger className="h-8 w-36 rounded-full border-slate-200/80 bg-slate-50">
-              <Filter className="mr-1 h-3.5 w-3.5 text-slate-400" />
+            <SelectTrigger className="h-8 w-36 rounded-full border-border bg-muted/40">
+              <Filter className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue placeholder="Severity" />
             </SelectTrigger>
             <SelectContent>
@@ -151,31 +151,31 @@ export function SymptomsTable({
       </CardHeader>
       <CardContent className="pt-2">
         {loading ? (
-          <div className="flex h-56 items-center justify-center text-sm text-slate-500">
+          <div className="flex h-56 items-center justify-center text-sm text-muted-foreground">
             Loading symptoms...
           </div>
         ) : filteredSymptoms.length > 0 ? (
           <>
-            <div className="hidden overflow-hidden rounded-2xl border border-slate-200 md:block">
+            <div className="hidden overflow-hidden rounded-2xl border border-border md:block">
               <Table className="table-fixed">
                 <TableHeader>
-                  <TableRow className="border-b border-slate-200 bg-slate-50">
-                    <TableHead className="w-[40%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <TableRow className="border-b border-border bg-muted/30">
+                    <TableHead className="w-[40%] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Symptoms
                     </TableHead>
-                    <TableHead className="w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[12%] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Severity
                     </TableHead>
-                    <TableHead className="w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[12%] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Status
                     </TableHead>
-                    <TableHead className="w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[12%] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Duration
                     </TableHead>
-                    <TableHead className="w-[14%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[14%] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Logged
                     </TableHead>
-                    <TableHead className="w-[10%] text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[10%] text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Actions
                     </TableHead>
                   </TableRow>
@@ -184,21 +184,21 @@ export function SymptomsTable({
                   {paginatedSymptoms.map((symptom) => (
                     <TableRow
                       key={symptom._id}
-                      className="border-b border-slate-200 hover:bg-slate-50/50"
+                      className="border-b border-border hover:bg-muted/30"
                     >
-                      <TableCell className="whitespace-normal text-sm text-slate-700">
+                      <TableCell className="whitespace-normal text-sm text-foreground">
                         {symptom.symptomList?.length
                           ? symptom.symptomList.join(", ")
                           : "-"}
                         {symptom.notes && (
-                          <p className="mt-1.5 text-xs text-slate-500">
+                          <p className="mt-1.5 text-xs text-muted-foreground">
                             {symptom.notes.length > 60
                               ? symptom.notes.slice(0, 60) + "..."
                               : symptom.notes}
                           </p>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm text-slate-600">
+                      <TableCell className="text-sm text-muted-foreground">
                         {symptom.severity ? (
                           <span
                             className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getSeverityTone(symptom.severity)}`}
@@ -209,13 +209,13 @@ export function SymptomsTable({
                           "-"
                         )}
                       </TableCell>
-                      <TableCell className="text-sm text-slate-600">
+                      <TableCell className="text-sm text-muted-foreground">
                         {symptom.status ? formatStatus(symptom.status) : "-"}
                       </TableCell>
-                      <TableCell className="text-sm text-slate-600">
+                      <TableCell className="text-sm text-muted-foreground">
                         {symptom.durationDays ? `${symptom.durationDays} days` : "-"}
                       </TableCell>
-                      <TableCell className="text-sm text-slate-600">
+                      <TableCell className="text-sm text-muted-foreground">
                         {symptom.loggedAt
                           ? formatDistanceToNow(new Date(symptom.loggedAt), {
                               addSuffix: true,
@@ -276,16 +276,16 @@ export function SymptomsTable({
               {paginatedSymptoms.map((symptom) => (
                 <div
                   key={symptom._id}
-                  className="rounded-2xl border border-slate-200 bg-white p-3"
+                  className="rounded-2xl border border-border bg-card p-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-foreground">
                         {symptom.symptomList?.length
                           ? symptom.symptomList.join(", ")
                           : "-"}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         Severity:{" "}
                         {symptom.severity ? (
                           <span
@@ -297,13 +297,13 @@ export function SymptomsTable({
                           "-"
                         )}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         Status: {symptom.status ? formatStatus(symptom.status) : "-"}
                       </p>
                       {symptom.notes && (
-                        <p className="mt-2 text-sm text-slate-600">{symptom.notes}</p>
+                        <p className="mt-2 text-sm text-muted-foreground">{symptom.notes}</p>
                       )}
-                      <div className="mt-2.5 flex items-center gap-3 text-xs text-slate-500">
+                      <div className="mt-2.5 flex items-center gap-3 text-xs text-muted-foreground">
                         {symptom.durationDays && (
                           <span className="flex items-center gap-1">
                             <Clock className="h-3.5 w-3.5" />
@@ -365,7 +365,7 @@ export function SymptomsTable({
             </div>
 
             {totalPages > 1 ? (
-              <div className="mt-2 flex items-center justify-between border-t border-slate-200/70 pt-2 text-xs text-slate-500">
+              <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-xs text-muted-foreground">
                 <span>
                   Page {page} of {totalPages}
                 </span>
@@ -373,7 +373,7 @@ export function SymptomsTable({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-7 rounded-full border-slate-200 px-3 text-slate-600"
+                    className="h-7 rounded-full border-border px-3 text-foreground"
                     disabled={page === 1}
                     onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   >
@@ -382,7 +382,7 @@ export function SymptomsTable({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-7 rounded-full border-slate-200 px-3 text-slate-600"
+                    className="h-7 rounded-full border-border px-3 text-foreground"
                     disabled={page === totalPages}
                     onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                   >
@@ -393,12 +393,12 @@ export function SymptomsTable({
             ) : null}
           </>
         ) : (
-          <div className="flex h-56 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50">
-            <Activity className="h-11 w-11 text-slate-300" />
-            <p className="mt-3 text-base font-medium text-slate-900">
+          <div className="flex h-56 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40">
+            <Activity className="h-11 w-11 text-muted-foreground/60" />
+            <p className="mt-3 text-base font-medium text-foreground">
               No symptoms logged yet
             </p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-muted-foreground">
               Start tracking by clicking "Log Symptom" above
             </p>
           </div>

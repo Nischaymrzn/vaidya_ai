@@ -80,6 +80,58 @@ const formatValue = (value?: number | null, suffix?: string) => {
   return `${value}${suffix ?? ""}`
 }
 
+const clampScore = (value: number) => Math.max(0, Math.min(100, Math.round(value)))
+
+const toNumber = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) ? value : undefined
+
+const deriveScoreFromVitals = (vitals?: any | null) => {
+  if (!vitals) return null
+
+  const systolic = toNumber(vitals.systolicBp)
+  const diastolic = toNumber(vitals.diastolicBp)
+  const heartRate = toNumber(vitals.heartRate)
+  const glucose = toNumber(vitals.glucoseLevel)
+  const bmi = toNumber(vitals.bmi)
+
+  const hasAnySignal = [systolic, diastolic, heartRate, glucose, bmi].some(
+    (value) => typeof value === "number",
+  )
+  if (!hasAnySignal) return null
+
+  let score = 78
+
+  if (typeof systolic === "number" && typeof diastolic === "number") {
+    if (systolic >= 90 && systolic <= 120 && diastolic >= 60 && diastolic <= 80) score += 5
+    else if (systolic >= 140 || diastolic >= 90) score -= 18
+    else if (systolic >= 130 || diastolic >= 85) score -= 10
+    else if (systolic < 90 || diastolic < 60) score -= 8
+  }
+
+  if (typeof heartRate === "number") {
+    if (heartRate >= 60 && heartRate <= 100) score += 4
+    else if (heartRate > 110) score -= 12
+    else if (heartRate > 100) score -= 6
+    else if (heartRate < 50) score -= 10
+  }
+
+  if (typeof glucose === "number") {
+    if (glucose >= 70 && glucose <= 99) score += 4
+    else if (glucose >= 126) score -= 12
+    else if (glucose >= 100) score -= 5
+    else if (glucose < 70) score -= 10
+  }
+
+  if (typeof bmi === "number") {
+    if (bmi >= 18.5 && bmi <= 24.9) score += 4
+    else if (bmi >= 30) score -= 10
+    else if (bmi >= 25) score -= 4
+    else if (bmi < 18.5) score -= 6
+  }
+
+  return clampScore(score)
+}
+
 const formatName = (value?: string | null) => {
   if (!value) return "Member"
   return value
@@ -284,12 +336,20 @@ const extractInviteToken = (value: string) => {
   return trimmed
 }
 
+const getStatusMeta = (status?: string | null) => {
+  if (status === "stable" || status === "warning" || status === "critical") {
+    return statusMeta[status]
+  }
+  return statusMeta.warning
+}
+
 export default function FamilyHealthPage() {
   const router = useRouter()
   const [currentUserRole, setCurrentUserRole] = useState<"admin" | "member">("member")
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [groupId, setGroupId] = useState<string | null>(null)
   const [groupName, setGroupName] = useState("Family Health")
+  const [familyHealthScore, setFamilyHealthScore] = useState<number | null>(null)
   const [members, setMembers] = useState<Array<any>>([])
   const [selectedMemberId, setSelectedMemberId] = useState<string>("")
   const [loading, setLoading] = useState(true)
@@ -331,6 +391,13 @@ export default function FamilyHealthPage() {
     if (result.success && result.data) {
       setGroupId(result.data.group._id)
       setGroupName(result.data.group.name || "Family Health")
+      const backendFamilyScore =
+        typeof result.data.familyScore === "number"
+          ? result.data.familyScore
+          : typeof result.data.group?.score === "number"
+            ? result.data.group.score
+            : null
+      setFamilyHealthScore(backendFamilyScore)
       setMembers(result.data.members || [])
       if (result.data.currentUser?.role) {
         setCurrentUserRole(result.data.currentUser.role)
@@ -383,7 +450,10 @@ export default function FamilyHealthPage() {
   }, [selectedMember?.userId])
 
   useEffect(() => {
-    const canView = selectedMember?.userId && selectedMember.userId === currentUserId
+    const targetUserId = selectedMember?.userId
+    const canView = Boolean(
+      targetUserId && (targetUserId === currentUserId || isAdmin),
+    )
     if (!canView) {
       setMedicalRecords([])
       setMedicalRecordsTotalPages(1)
@@ -396,6 +466,7 @@ export default function FamilyHealthPage() {
         const result = await getMedicalRecords({
           page: medicalRecordsPage,
           limit: 4,
+          userId: isAdmin ? targetUserId : undefined,
         })
         if (result.success && result.data) {
           setMedicalRecords(result.data)
@@ -409,10 +480,13 @@ export default function FamilyHealthPage() {
       }
     }
     loadRecords()
-  }, [selectedMember?.userId, currentUserId, medicalRecordsPage])
+  }, [selectedMember?.userId, currentUserId, medicalRecordsPage, isAdmin])
 
   useEffect(() => {
-    const canView = selectedMember?.userId && selectedMember.userId === currentUserId
+    const targetUserId = selectedMember?.userId
+    const canView = Boolean(
+      targetUserId && (targetUserId === currentUserId || isAdmin),
+    )
     if (!canView) {
       setAllergies([])
       setMedications([])
@@ -420,14 +494,14 @@ export default function FamilyHealthPage() {
     }
     const loadMemberDetails = async () => {
       const [allergyResult, medicationResult] = await Promise.all([
-        getAllergies(),
-        getMedications(),
+        getAllergies({ userId: isAdmin ? targetUserId : undefined }),
+        getMedications({ userId: isAdmin ? targetUserId : undefined }),
       ])
       setAllergies(allergyResult.success ? allergyResult.data ?? [] : [])
       setMedications(medicationResult.success ? medicationResult.data ?? [] : [])
     }
     loadMemberDetails()
-  }, [selectedMember?.userId, currentUserId])
+  }, [selectedMember?.userId, currentUserId, isAdmin])
 
   const currentUserVitals = useMemo(
     () => userData?.vitals ?? userData?.latestVitals ?? null,
@@ -443,8 +517,51 @@ export default function FamilyHealthPage() {
     return base
   }
 
-  const canViewMemberDetails =
-    Boolean(selectedMember?.userId && selectedMember.userId === currentUserId)
+  const canViewMemberDetails = Boolean(
+    selectedMember?.userId &&
+    (selectedMember.userId === currentUserId || isAdmin),
+  )
+
+  const memberScoreById = useMemo(() => {
+    const backendScores = members
+      .map((member) =>
+        typeof member.healthScore === "number" && Number.isFinite(member.healthScore)
+          ? clampScore(member.healthScore)
+          : null,
+      )
+      .filter((score): score is number => typeof score === "number")
+
+    const backendScoresAreUniform =
+      backendScores.length > 1 &&
+      new Set(backendScores).size === 1 &&
+      (typeof familyHealthScore !== "number" ||
+        backendScores[0] === clampScore(familyHealthScore))
+
+    const scores = new Map<string, number | null>()
+
+    members.forEach((member) => {
+      const backendScore =
+        typeof member.healthScore === "number" && Number.isFinite(member.healthScore)
+          ? clampScore(member.healthScore)
+          : null
+
+      const baseVitals = member.latestVitals ?? member.recentVitals?.[0] ?? null
+      const resolvedVitals =
+        member.userId && member.userId === currentUserId
+          ? mergeVitals(baseVitals, currentUserVitals)
+          : baseVitals
+      const derivedScore = deriveScoreFromVitals(resolvedVitals)
+
+      const effectiveScore =
+        backendScoresAreUniform || backendScore === null
+          ? derivedScore ?? backendScore
+          : backendScore
+
+      scores.set(member.userId, effectiveScore ?? null)
+    })
+
+    return scores
+  }, [members, familyHealthScore, currentUserId, currentUserVitals])
 
   const familyTitle = useMemo(() => {
     const currentMember = members.find((member) => member.userId === currentUserId)
@@ -462,13 +579,15 @@ export default function FamilyHealthPage() {
     const avgScore = total
       ? Math.round(
         members.reduce(
-          (sum, member) => sum + (member.healthScore ?? 0),
+          (sum, member) => sum + (memberScoreById.get(member.userId) ?? 0),
           0
         ) / total
       )
       : 0
-    return { total, stable, warning, critical, avgScore }
-  }, [members])
+    const familyScore =
+      typeof familyHealthScore === "number" ? familyHealthScore : avgScore
+    return { total, stable, warning, critical, avgScore, familyScore }
+  }, [members, familyHealthScore, memberScoreById])
 
   const vitalsSummary = useMemo(() => {
     const heartRates = members
@@ -484,9 +603,9 @@ export default function FamilyHealthPage() {
     () =>
       members.map((member) => ({
         name: formatName(member.name),
-        score: member.healthScore ?? 0,
+        score: memberScoreById.get(member.userId) ?? 0,
       })),
-    [members]
+    [members, memberScoreById]
   )
 
   const vitalsChartData = useMemo(
@@ -522,11 +641,11 @@ export default function FamilyHealthPage() {
 
     insights.push({
       title: "Family stability",
-      detail: `Average health score is ${summary.avgScore}.`,
+      detail: `Family health score is ${summary.familyScore}.`,
     })
 
     return insights.slice(0, 3)
-  }, [members, summary.avgScore])
+  }, [members, summary.familyScore])
 
   const vitalsHistory = useMemo(() => {
     const items = selectedMember?.recentVitals ?? []
@@ -718,11 +837,11 @@ export default function FamilyHealthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-background">
       <div className="w-full px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div className="space-y-6">
           <section className="space-y-4">
-            <Card className="overflow-hidden rounded-3xl border border-primary/20 bg-primary text-white shadow-sm">
+            <Card className="overflow-hidden rounded-3xl border border-[#1F7AE0]/30 bg-[linear-gradient(135deg,#1F7AE0_0%,#185FB0_100%)] text-white shadow-sm dark:border-border dark:bg-[linear-gradient(135deg,oklch(0.21_0_0)_0%,oklch(0.18_0_0)_100%)]">
               <CardContent className="p-0">
                 <div className="grid gap-4 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                   <div className="space-y-2">
@@ -731,7 +850,7 @@ export default function FamilyHealthPage() {
                       <h1 className="text-2xl font-semibold sm:text-3xl">
                         {familyTitle}
                       </h1>
-                      <Badge className="bg-white/15 text-white">
+                      <Badge className="border border-[oklch(1_0_0/0.28)] bg-[oklch(1_0_0/0.16)] text-white dark:border-border dark:bg-muted dark:text-foreground">
                         {isAdmin ? "Family Admin" : "Family Member"}
                       </Badge>
                     </div>
@@ -744,9 +863,7 @@ export default function FamilyHealthPage() {
                       <>
                         <Dialog open={addMemberOpen} onOpenChange={setAddMemberOpen}>
                           <DialogTrigger asChild>
-                            <Button
-                              className="h-10 rounded-full bg-white text-primary shadow-sm hover:bg-white/90"
-                            >
+                            <Button className="h-10 rounded-full bg-[oklch(0.985_0_0)] text-[#1F7AE0] shadow-sm hover:bg-[oklch(0.95_0_0)] dark:bg-foreground dark:text-background dark:hover:bg-foreground/90">
                               <Plus className="h-4 w-4" />
                               Add member
                             </Button>
@@ -878,9 +995,7 @@ export default function FamilyHealthPage() {
                       <>
                         <Dialog open={createGroupOpen} onOpenChange={setCreateGroupOpen}>
                           <DialogTrigger asChild>
-                            <Button
-                              className="h-10 rounded-full bg-white text-primary shadow-sm hover:bg-white/90"
-                            >
+                            <Button className="h-10 rounded-full bg-[oklch(0.985_0_0)] text-[#1F7AE0] shadow-sm hover:bg-[oklch(0.95_0_0)] dark:bg-foreground dark:text-background dark:hover:bg-foreground/90">
                               <Plus className="h-4 w-4" />
                               Create group
                             </Button>
@@ -988,7 +1103,7 @@ export default function FamilyHealthPage() {
                     </div>
                     <div className="rounded-2xl border border-white/20 bg-white/10 px-3 py-3">
                       <p className="text-xs uppercase tracking-wider text-white/70">Family score</p>
-                      <p className="mt-1 text-lg font-semibold">{summary.avgScore}</p>
+                      <p className="mt-1 text-lg font-semibold">{summary.familyScore}</p>
                       <p className="text-xs text-white/70">Average index</p>
                     </div>
                   </div>
@@ -1021,7 +1136,7 @@ export default function FamilyHealthPage() {
               <div className="overflow-x-auto overflow-y-visible px-1 pb-3 pt-1 scrollbar-light">
                 <div className="grid grid-flow-col gap-4 auto-cols-[minmax(260px,1fr)] lg:auto-cols-[calc((100%-2rem)/3)]">
                   {members.map((member) => {
-                    const meta = statusMeta[member.status || "warning"]
+                    const meta = getStatusMeta(member.status)
                     const isSelected = selectedMember?.userId === member.userId
                     const isEditing = editingMemberId === member.userId
                     const isSelf = member.userId === currentUserId
@@ -1145,8 +1260,8 @@ export default function FamilyHealthPage() {
                           </SelectContent>
                         </Select>
                       ) : null}
-                      <Badge className={statusMeta[selectedMember.status || "warning"].badge}>
-                        {statusMeta[selectedMember.status || "warning"].label}
+                      <Badge className={getStatusMeta(selectedMember.status).badge}>
+                        {getStatusMeta(selectedMember.status).label}
                       </Badge>
                     </div>
                   </div>
@@ -1219,15 +1334,15 @@ export default function FamilyHealthPage() {
                             <div className="flex items-center justify-between">
                               <span>Health score</span>
                               <span className="font-semibold text-slate-900">
-                                {selectedMember.healthScore ?? "--"}
+                                {memberScoreById.get(selectedMember.userId) ?? "--"}
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="rounded-2xl border border-slate-200/70 bg-slate-50 px-4 py-3">
-                          <p className="text-xs uppercase tracking-wider text-slate-500">Active alerts</p>
-                          <div className="mt-2 space-y-2 text-sm text-slate-600">
-                            <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-blue-700">
+                        <div className="rounded-2xl border border-border bg-card/60 px-4 py-3">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground">Active alerts</p>
+                          <div className="mt-2 space-y-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2 text-foreground">
                               <AlertTriangle className="h-4 w-4" />
                               {selectedMember.status === "critical"
                                 ? "Immediate follow-up recommended."
@@ -1235,7 +1350,7 @@ export default function FamilyHealthPage() {
                                   ? "Monitor vitals in the next 24 hours."
                                   : "Vitals remain stable over the last check-in."}
                             </div>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-muted-foreground">
                               Alerts update after each vitals upload.
                             </p>
                           </div>
@@ -1569,23 +1684,20 @@ export default function FamilyHealthPage() {
               </Card>
 
               <aside className="space-y-4">
-                <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+                <Card className="rounded-3xl border-border bg-card shadow-sm">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-semibold text-slate-900">AI insights</CardTitle>
-                    <CardDescription className="text-sm text-slate-500">
+                    <CardTitle className="text-base font-semibold text-foreground">AI insights</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
                       Real-time family signals and priorities.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {aiInsights.map((insight) => (
-                      <div key={insight.title} className="rounded-2xl bg-blue-50/70 px-3 py-2">
+                      <div key={insight.title} className="rounded-2xl border border-border bg-muted/40 px-3 py-2">
                         <div className="flex items-start gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
-                            <Sparkles className="h-4 w-4" />
-                          </div>
                           <div>
-                            <p className="text-sm font-semibold text-slate-900">{insight.title}</p>
-                            <p className="text-xs text-slate-500">{insight.detail}</p>
+                            <p className="text-sm font-semibold text-foreground">{insight.title}</p>
+                            <p className="text-xs text-muted-foreground">{insight.detail}</p>
                           </div>
                         </div>
                       </div>
@@ -1631,7 +1743,7 @@ export default function FamilyHealthPage() {
                     <div key={member.userId} className="rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2">
                       <p className="text-xs uppercase tracking-wider text-slate-500">{getRelationLabel(member)}</p>
                       <p className="mt-1 text-lg font-semibold text-slate-900">
-                        {member.healthScore ?? "--"}
+                        {memberScoreById.get(member.userId) ?? "--"}
                       </p>
                       <p className="text-xs text-slate-500">Health score</p>
                     </div>

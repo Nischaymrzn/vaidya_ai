@@ -46,7 +46,8 @@ export default function Page() {
   const sendMessage = async (content: string) => {
     const trimmed = content.trim()
     if (!trimmed || isThinking) return
-    const nextHistory = [...conversationRef.current, { role: "user", content: trimmed }]
+    const userMessage: ChatMessage = { role: "user", content: trimmed }
+    const nextHistory: ChatMessage[] = [...conversationRef.current, userMessage]
     conversationRef.current = nextHistory
     setMessages(nextHistory)
     setInputValue("")
@@ -66,16 +67,18 @@ export default function Page() {
         data?.reply?.trim() ||
         data?.message?.trim() ||
         "I'm sorry, I couldn't respond."
-      const updated = [...conversationRef.current, { role: "assistant", content: reply }]
+      const assistantReply: ChatMessage = { role: "assistant", content: reply }
+      const updated: ChatMessage[] = [...conversationRef.current, assistantReply]
       conversationRef.current = updated
       setMessages(updated)
     } catch {
-      const updated = [
+      const fallbackReply: ChatMessage = {
+        role: "assistant",
+        content: "I ran into an error. Please try again in a moment.",
+      }
+      const updated: ChatMessage[] = [
         ...conversationRef.current,
-        {
-          role: "assistant",
-          content: "I ran into an error. Please try again in a moment.",
-        },
+        fallbackReply,
       ]
       conversationRef.current = updated
       setMessages(updated)
@@ -98,47 +101,32 @@ export default function Page() {
     <div className="flex h-[calc(100vh-72px)] w-full flex-col">
       <div className="mx-auto flex h-full w-full max-w-5xl min-h-0 flex-col px-4 py-6">
         {!hasChatStarted ? (
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#1F7AE0]">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-7 w-7 text-white"
-              >
-                <path d="M12 2a10 10 0 0 0-9.95 9h11.64L9.74 7.05a1 1 0 0 1 1.41-1.41l5.66 5.65a1 1 0 0 1 0 1.42l-5.66 5.65a1 1 0 0 1-1.41 0 1 1 0 0 1 0-1.41l3.95-3.95H2.05a10 10 0 1 0 18.86-4.3" />
-              </svg>
+          <div className="flex flex-1 flex-col justify-center">
+            <div className="flex flex-col items-center justify-center text-center">
+              <h1 className="text-3xl font-semibold text-slate-900">
+                How can I help you today?
+              </h1>
+              <p className="mt-3 max-w-xl text-base text-slate-600">
+                I can help with symptoms, medications, care plans, and wellness guidance
+              </p>
             </div>
-            <h1 className="text-3xl font-semibold text-slate-900">
-              How can I help you today?
-            </h1>
-            <p className="mt-3 max-w-xl text-base text-slate-600">
-              I can help with symptoms, medications, care plans, and wellness guidance
-            </p>
-          </div>
-        ) : null}
-
-        {!hasChatStarted ? (
-          <div className="mt-12 grid gap-3 sm:grid-cols-2">
-            {promptCards.map((card) => (
-              <button
-                key={card.title}
-                className="group rounded-2xl border border-slate-200 bg-slate-50/50 p-5 text-left transition-all hover:border-[#1F7AE0] hover:bg-[#1F7AE0]/5"
-                type="button"
-                onClick={() => sendMessage(card.description)}
-              >
-                <p className="text-sm font-semibold text-slate-900 group-hover:text-[#1F7AE0]">
-                  {card.title}
-                </p>
-                <p className="mt-2 text-sm text-slate-600">
-                  {card.description}
-                </p>
-              </button>
-            ))}
+            <div className="mt-12 grid gap-3 sm:grid-cols-2">
+              {promptCards.map((card) => (
+                <button
+                  key={card.title}
+                  className="group rounded-2xl border border-slate-200 bg-slate-50/50 p-5 text-left transition-all hover:border-[#1F7AE0] hover:bg-[#1F7AE0]/5"
+                  type="button"
+                  onClick={() => sendMessage(card.description)}
+                >
+                  <p className="text-sm font-semibold text-slate-900 group-hover:text-[#1F7AE0]">
+                    {card.title}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    {card.description}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           <div

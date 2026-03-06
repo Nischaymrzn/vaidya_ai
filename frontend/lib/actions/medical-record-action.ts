@@ -22,12 +22,14 @@ export type PaginationInfo = {
 export async function getMedicalRecords(params?: {
   page?: number;
   limit?: number;
+  userId?: string;
 }): Promise<ApiResponse<TMedicalRecord[]> & { pagination?: PaginationInfo }> {
   try {
     const response = await api.get(
       API.MEDICAL_RECORDS.LIST({
         page: params?.page ?? 1,
         limit: params?.limit ?? 10,
+        userId: params?.userId,
       }),
     );
     const data = response.data.data ?? response.data;
